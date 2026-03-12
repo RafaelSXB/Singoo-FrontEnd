@@ -1,1 +1,24 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --primary-green: #00E676; 
+  --bg-card: #1E1E1E;       
+  --text-light: #FFFFFF;    
+  --text-muted: #A0A0A0;    
+  --border-color: #333333;  
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; 
+}
+
+body {
+  background-color: var(--bg-card);
+  color: var(--text-light);
+  font-family: 'Inter', 'Roboto', sans-serif; 
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+}

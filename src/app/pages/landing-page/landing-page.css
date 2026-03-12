@@ -1,0 +1,127 @@
+.landing-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 3vh 2.5vh 0 2.5vh;
+  text-align: center;
+}
+
+.header-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.logo-glow {
+  width: 17vh;
+  height: 17vh;
+  max-width: 210px;
+  background-color: var(--primary-green);
+  border-radius: 50%;
+  filter: blur(5vh);
+  opacity: 0.3;
+  z-index: 1;
+}
+
+.logo {
+  position: absolute;
+  z-index: 2;
+  width: 22vh;
+  max-width: 210px;
+  opacity: 1;
+  filter: none;
+}
+
+.main-title {
+  font-size: 3.2vh;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.mockup-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+.mockup-glow {
+  position: relative;
+  max-width: 300px;
+  border-radius: 20px;
+  box-shadow: 0px 0px 60px -10px rgba(0, 230, 118, 0.3);
+  background-color: var(--bg-card);
+}
+
+.mockup-image {
+  height: 38vh;
+  border-radius: 16px;
+  display: block;
+}
+
+.carousel-indicators {
+  display: flex;
+  gap: 8px;
+  margin-top: 1.5rem;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background-color: var(--text-light);
+  width: 8px;
+  height: 8px;
+}
+
+.action-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  max-width: 500px;
+ 
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background-color: var(--primary-green);
+  color: #000000;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-light);
+  border: 2px solid var(--border-color);
+}
