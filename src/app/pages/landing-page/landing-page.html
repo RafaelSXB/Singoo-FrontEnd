@@ -23,7 +23,7 @@
   </section>
 
   <footer class="action-section">
-    <button class="btn btn-primary" (click)="onStart()">
+    <button class="btn btn-primary" (click)="openRegister()">
       COMECE AGORA
     </button>
     <br>
@@ -33,6 +33,8 @@
   </footer>
 
   <app-bottom-sheet [isOpen]="isSheetOpen" (closed)="closeSheet()">
-
+    @if (activeForm === 'register') {
+    <app-register></app-register>
+  }
 </app-bottom-sheet>
 </main>
