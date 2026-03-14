@@ -2,26 +2,44 @@
   <h2 class="auth-title">ÓTIMA ESCOLHA!</h2>
   <p class="auth-subtitle">Faça login ou cadastro para soltar a voz e salvar seu progresso.</p>
 
-  <form class="auth-form">
+  <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
     <div class="input-group">
-      <input type="email" class="auth-input" placeholder="Seu E-mail">
+      <input type="email" class="auth-input" placeholder="Seu E-mail"
+        [class.input-error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+        formControlName="email">
+      @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+      <div class="error-message">
+        @if (registerForm.get('email')?.hasError('required')) { <span>O e-mail é obrigatório.</span> }
+        @if (registerForm.get('email')?.hasError('email')) { <span>Digite um e-mail válido.</span> }
+      </div>
+      }
     </div>
 
     <div class="input-group">
-      <input type="password" class="auth-input" placeholder="Sua Senha" [type]="passwordVisible ? 'text' : 'password'">
+      <input type="password" class="auth-input" placeholder="Sua Senha" [type]="passwordVisible ? 'text' : 'password'"
+        [class.input-error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+        formControlName="password">
       <button type="button" class="eye-btn" (click)="togglePasswordVisibility()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A0A0A0" stroke-width="2">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
           <circle cx="12" cy="12" r="3"></circle>
           @if (!passwordVisible) {
-            <line x1="1" y1="1" x2="23" y2="23"></line>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
           }
         </svg>
       </button>
+
+      @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+      <div class="error-message">
+        @if (registerForm.get('password')?.hasError('required')) { <span>A senha é obrigatória.</span> }
+        @if (registerForm.get('password')?.hasError('minlength')) { <span>A senha deve ter no mínimo 6
+          caracteres.</span> }
+      </div>
+      }
     </div>
 
-    <button type="button" class="btn btn-primary">ENTRAR</button>
-    
+    <button type="submit" class="btn btn-primary">ENTRAR</button>
+
     <button type="button" class="btn btn-google">
       <img src="assets/images/icon-google.svg" alt="Google Icon" class="google-icon">
       CONTINUAR COM GOOGLE

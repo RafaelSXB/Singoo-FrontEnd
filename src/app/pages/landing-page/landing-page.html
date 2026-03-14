@@ -34,7 +34,7 @@
 
   <app-bottom-sheet [isOpen]="isSheetOpen" (closed)="closeSheet()">
     @if (activeForm === 'register') {
-    <app-register></app-register>
+    <app-register  (closed)="closeSheet()" ></app-register>
   }
 </app-bottom-sheet>
 </main>

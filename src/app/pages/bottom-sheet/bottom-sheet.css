@@ -24,7 +24,7 @@
   position: fixed;
   bottom: 0;
   left: 50%;
-    height: 60dvh;
+    height: 65dvh;
   width: 100%;
   max-width: 500px;
   background-color: var(--bg-card); 
