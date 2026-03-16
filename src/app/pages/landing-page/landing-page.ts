@@ -3,10 +3,11 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { BottomSheet } from "../bottom-sheet/bottom-sheet";
 import { Register } from "../register/register";
+import { Login } from "../login/login";
 
 @Component({
   selector: 'app-landing-page',
-  imports: [RouterOutlet, CommonModule, BottomSheet, Register],
+  imports: [RouterOutlet, CommonModule, BottomSheet, Register, Login],
   templateUrl: './landing-page.html',
   styleUrl: './landing-page.css',
 })
@@ -28,7 +29,8 @@ export class LandingPage {
 
   onLogin(): void {
     console.log('Login button clicked!');
-     this.isSheetOpen = true;
+    this.activeForm = 'login';
+    this.isSheetOpen = true;
   }
 
   openRegister() {

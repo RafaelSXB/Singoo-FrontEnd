@@ -36,5 +36,8 @@
     @if (activeForm === 'register') {
     <app-register  (closed)="closeSheet()" ></app-register>
   }
+  @if (activeForm === 'login') {
+    <app-login (closed)="closeSheet()"></app-login>
+  }
 </app-bottom-sheet>
 </main>
