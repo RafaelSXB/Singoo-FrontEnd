@@ -1,5 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth/auth-service';
+import e from 'express';
 
 @Component({
   selector: 'app-register',
@@ -11,8 +13,12 @@ export class Register {
 
   @Output() closed = new EventEmitter<void>();
   registerForm: FormGroup;
+  errorMessage: string = '';
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(
+    private formBuilder: FormBuilder,
+    private authService: AuthService
+  ) {
     this.registerForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -21,11 +27,18 @@ export class Register {
 
   onSubmit() {
     if (this.registerForm.valid) {
-      const email = this.registerForm.get('email')?.value;
-      const password = this.registerForm.get('password')?.value;
-      console.log('Email:', email);
-      console.log('Password:', password);
-      this.closed.emit();
+      const { email, password } = this.registerForm.value;
+      this.errorMessage = '';
+      this.authService.register({ email, password }).subscribe({
+        next: (response) => {
+          console.log('Registro bem-sucedido:', response);
+          this.closed.emit();
+        },
+        error: (err) => {
+          console.error('Erro no registro:', err);
+          this.errorMessage = err.message || 'Ocorreu um erro no registro.';
+        }
+      });
     } else {
       console.log('Form is invalid');
       this.registerForm.markAllAsTouched();
