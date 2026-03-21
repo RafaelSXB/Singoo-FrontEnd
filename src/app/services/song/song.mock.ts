@@ -5,8 +5,10 @@ export const DB_SONGS_LIST_KEY = 'singoo_db_songs_list';
 export const DB_SONGS_DETAILS_KEY = 'singoo_db_songs_details';
 
 export function initializeMockDatabase(): void {
+console.log('Inicializando banco de dados simulado com músicas de exemplo...');
 
   if (!localStorage.getItem(DB_SONGS_LIST_KEY)) {
+    console.log('Populando lista de músicas no localStorage...');
     const mockSongsList: SongListDto[] = [
       {
         id: '123e4567-e89b-12d3-a456-426614174000',

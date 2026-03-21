@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth-service';
-import e from 'express';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -17,7 +17,8 @@ export class Register {
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     this.registerForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -32,7 +33,7 @@ export class Register {
       this.authService.register({ email, password }).subscribe({
         next: (response) => {
           console.log('Registro bem-sucedido:', response);
-          this.closed.emit();
+          this.router.navigate(['/catalog']);
         },
         error: (err) => {
           console.error('Erro no registro:', err);

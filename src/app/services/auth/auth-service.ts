@@ -23,7 +23,11 @@ export class AuthService {
 
     const userExists = users.find((u: UserDto) => u.email === payload.email);
     if (userExists) {
-      return throwError(() => new Error('Este e-mail já está em uso.'));
+      if (userExists.password === payload.password) {
+        const response: AuthResponse = this.generateAuthResponse(userExists);
+        return of(response).pipe(delay(800));
+      }
+      return throwError(() => new Error('Este e-mail já está em uso / senha incorreta.'));
     }
 
 

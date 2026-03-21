@@ -7,7 +7,7 @@ import { Login } from "../login/login";
 
 @Component({
   selector: 'app-landing-page',
-  imports: [RouterOutlet, CommonModule, BottomSheet, Register, Login],
+  imports: [CommonModule, BottomSheet, Register, Login],
   templateUrl: './landing-page.html',
   styleUrl: './landing-page.css',
 })

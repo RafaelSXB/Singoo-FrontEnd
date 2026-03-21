@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth-service';
+import { Router, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterOutlet],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -13,7 +14,8 @@ export class Login {
   loginForm: FormGroup;
   errorMessage: string = '';
   constructor(private formBuilder: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService, 
+    private router: Router
   ) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -28,7 +30,7 @@ export class Login {
       this.authService.login(dadosLogin).subscribe({
         next: (response) => {
           console.log('Login bem-sucedido:', response);
-          this.closed.emit();
+          this.router.navigate(['/catalog']);
         },
         error: (err) => {
           console.error('Erro no login:', err);

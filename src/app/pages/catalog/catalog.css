@@ -1,0 +1,204 @@
+.catalog-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100vdw;
+  align-items: center;
+  background-color: var(--bg-dark);
+  color: #fff;
+}
+
+
+.catalog-header {
+  display: flex;
+  width: 100%;
+  max-width: 500px;
+  padding: 16px 0px 16px 0px;
+
+  flex-direction: column;
+  position: sticky;
+  z-index: 10;
+}
+
+.logo {
+align-self: center;
+  width: 22vh;
+  max-width: 130px;
+  opacity: 1;
+
+}
+.logo-glow {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width:  100px;
+  height: 100px;
+  background-color: var(--primary-green);
+  border-radius: 50%;
+  filter: blur(5vh);
+  opacity: 0.3;
+  z-index: 11;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  background-color: var(--border-color);
+  border: none;
+  border-radius: 6px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.search-icon {
+  position: absolute;
+  right: 16px;
+  width: 20px;
+  height: 20px;
+  color: #888;
+}
+
+
+.songs-list {
+    width: 100%;
+    max-width: 500px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.song-card {
+  display: flex;
+  background-color: var(--border-color);
+  border-radius: 16px;
+  padding: 10px;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.song-card:active {
+  transform: scale(0.98);
+}
+
+.song-card:hover {
+  border: 1px solid var(--primary-green);
+}
+
+
+.thumbnail-wrapper {
+  position: relative;
+  width: 130px;
+  height: 85px;
+  flex-shrink: 0; 
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+
+}
+
+.youtube-play-icon {
+  position: absolute;
+  bottom: 2px;
+  right: 5px;
+
+  width: 30px;
+  height: 30px;
+  color: #FF0000; 
+  opacity: 0.8;
+
+}
+
+
+.song-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.song-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.song-artist {
+  font-size: 0.85rem;
+  color: #A0A0A0;
+  margin-bottom: 12px;
+}
+
+
+.song-tags {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.tag.beginner {
+  color: #00E676; 
+  border: 1px solid #00E676;
+}
+
+.tag.advanced {
+  color: #FF7043; 
+  border: 1px solid #FF7043;
+}
+
+.tag.pro {
+  background-color: #FFCA28; 
+  color: #000;
+}
+
+.tag.free {
+  background-color: #E0E0E0;
+  color: #000;
+}
+
+
+.loading-state, .empty-state {
+  text-align: center;
+  color: #888;
+  margin-top: 40px;
+  font-size: 0.9rem;
+}
