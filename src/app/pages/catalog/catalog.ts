@@ -18,6 +18,8 @@ export class Catalog implements OnInit {
   searchControl = new FormControl('');
   songs: SongListDto[] = [];
   isLoading: boolean = false;
+  nameSong: string = '';
+
 
   constructor(private songServices: SongServices, private router: Router, private cdr: ChangeDetectorRef) {
   
@@ -56,8 +58,10 @@ export class Catalog implements OnInit {
   }
 
 
-  goToStage(songId: string): void {
-    console.log('Navegar para O Palco (US04) com a música:', songId);
+  goToStage(songId: string, nameSong: string): void {
+
+    this.nameSong =   nameSong;
+    this.router.navigate(['/stage', songId, nameSong]);
    
   }
 }

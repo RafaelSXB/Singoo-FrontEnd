@@ -1,0 +1,63 @@
+<div class="stage-container">
+  <header class="stage-header">
+    <button class="back-btn" (click)="goBack()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <h1 class="logo-title">Singoo</h1>
+    <div class="spacer"></div>
+  </header>
+
+  @if (isLoading) {
+    <div class="loading-state">A preparar o palco...</div>
+  } @else if (songDetails) {
+    
+    <section class="video-section">
+      
+    <youtube-player 
+  [videoId]="songDetails.youtubeVideoId" 
+  width="100%" 
+  height="100%"
+  [playerVars]="{ 
+    controls: 0, 
+    disablekb: 1, 
+    fs: 0, 
+    modestbranding: 1, 
+    rel: 0, 
+    playsinline: 1,
+    origin: playerOrigin 
+  }"
+  (stateChange)="onPlayerStateChange($event)">
+</youtube-player>
+
+
+      
+    </section>
+
+    <div class="now-playing-bar">
+      <span class="now-playing-text"> {{ nameSong }}</span>
+    </div>
+
+    <section class="lyrics-section">
+      
+      <div class="sound-wave-icon" [style.color]="currentLyricIndex !== -1 ? '#00E676' : '#555'">
+        <span class="mock-wave">|||·|||·|||</span>
+      </div>
+
+      @for (lyric of songDetails.lyrics; track lyric.startTimeMs) {
+        <div class="lyric-block" 
+             [class.active]="currentTimeMs >= lyric.startTimeMs && currentTimeMs <= lyric.endTimeMs"
+             [class.passed]="currentTimeMs > lyric.endTimeMs"
+             [class.upcoming]="currentTimeMs < lyric.startTimeMs">
+          <h2 class="lyric-en">{{ lyric.englishPhrase }}</h2>
+          <p class="lyric-pt">{{ lyric.portugueseTranslation }}</p>
+        </div>
+      }
+
+    </section>
+
+  } @else {
+    <div class="error-state">Música não encontrada.</div>
+  }
+</div>

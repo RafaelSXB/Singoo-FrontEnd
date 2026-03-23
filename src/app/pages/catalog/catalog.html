@@ -20,7 +20,7 @@
     } @else {
       
       @for (song of songs; track song.id) {
-        <div class="song-card" (click)="goToStage(song.id)">
+        <div class="song-card" (click)="goToStage(song.id, song.title)">
           
           <div class="thumbnail-wrapper">
             <img [src]="'https://img.youtube.com/vi/' + song.youtubeVideoId + '/mqdefault.jpg'" 

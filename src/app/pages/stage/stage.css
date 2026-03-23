@@ -1,0 +1,52 @@
+.stage-container { display: flex; flex-direction: column; height: 100vh; background-color: #121212; color: #FFFFFF; overflow: hidden; }
+.stage-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background-color: #121212; }
+.back-btn { background: none; border: none; color: #FFF; cursor: pointer; padding: 4px; }
+.logo-title { font-size: 1.3rem; font-weight: 800; margin: 0; }
+.spacer { width: 32px; }
+
+.video-section { position: relative; width: 100%; aspect-ratio: 16 / 9; background-color: #000; flex-shrink: 0; }
+
+/* O SEGREDINHO: Bloqueia o rato no YouTube para a nossa capa funcionar */
+.player-wrapper { width: 100%; height: 100%; pointer-events: none; }
+::ng-deep youtube-player iframe { width: 100% !important; height: 100% !important; pointer-events: none; }
+
+.custom-controls-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  background-color: transparent;
+}
+
+.play-indicator {
+  width: 64px; height: 64px; background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: white; border: 2px solid rgba(255, 255, 255, 0.8);
+}
+.play-indicator svg { width: 32px; height: 32px; margin-left: 4px; }
+
+.now-playing-bar { text-align: center; padding: 12px 20px; background-color: #1A1A1A; border-bottom: 1px solid #333; }
+.now-playing-text { font-size: 0.75rem; color: #A0A0A0; text-transform: uppercase; letter-spacing: 1px; }
+
+.lyrics-section {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 32px 20px; background: linear-gradient(180deg, #1A1A1A 0%, #121212 100%);
+  overflow: hidden; 
+}
+
+.sound-wave-icon { margin-bottom: 24px; color: #00E676; flex-shrink: 0; }
+.mock-wave { font-weight: 900; letter-spacing: 2px; }
+
+.lyric-block {
+  text-align: center; width: 100%; transition: all 0.4s ease-in-out; overflow: hidden; flex-shrink: 0; 
+}
+
+.lyric-en { margin: 0 0 4px 0; }
+.lyric-pt { margin: 0; font-size: 0.9rem; color: #A0A0A0; }
+
+.lyric-block.passed { opacity: 0; max-height: 0; margin: 0; padding: 0; transform: translateY(-20px); pointer-events: none; }
+.lyric-block.active { opacity: 1; max-height: 150px; margin-bottom: 32px; transform: translateY(0); }
+.lyric-block.active .lyric-en { font-size: 1.6rem; font-weight: 800; line-height: 1.2; color: #FFFFFF; }
+.lyric-block.upcoming { opacity: 1; max-height: 150px; margin-bottom: 20px; transform: translateY(0); }
+.lyric-block.upcoming .lyric-en { font-size: 1.2rem; color: #666666; font-weight: 500; }
+
+.word-correct { color: #00E676; transition: color 0.2s; }
+.word-incorrect { color: #FF5252; transition: color 0.2s; }

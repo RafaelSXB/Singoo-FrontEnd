@@ -32,7 +32,7 @@ export class AuthService {
 
 
     const newUser = {
-      id: crypto.randomUUID(), 
+      id: crypto.randomUUID, 
       email: payload.email,
       password: payload.password, 
       tier: 'FREE'
