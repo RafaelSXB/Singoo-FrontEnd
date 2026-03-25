@@ -53,13 +53,7 @@ export class SpeechRecognitionService {
       this.validatePhrase(interimTranscript.trim());
     };
 
-    this.recognition.onend = () => {
-      this.isListening = false;
-    };
-
-    this.recognition.onerror = (event: any) => {
-      console.error('Erro no reconhecimento de voz:', event.error);
-    };
+   
   }
 
   startListeningForPhrase(phrase: string) {
