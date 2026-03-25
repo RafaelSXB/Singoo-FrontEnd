@@ -61,13 +61,27 @@
         <rect x="60" y="16" width="3" height="8" rx="1.5" class="wave-bar" />
       </svg>
     </div>
-    @for (lyric of songDetails.lyrics; track lyric.startTimeMs) {
-    <div class="lyric-block" [class.active]="currentTimeMs >= lyric.startTimeMs && currentTimeMs <= lyric.endTimeMs"
-      [class.passed]="currentTimeMs > lyric.endTimeMs" [class.upcoming]="currentTimeMs < lyric.startTimeMs">
-      <h2 class="lyric-en">{{ lyric.englishPhrase }}</h2>
-      <p class="lyric-pt">{{ lyric.portugueseTranslation }}</p>
-    </div>
-    }
+   @for (lyric of songDetails.lyrics; track lyric.startTimeMs; let i = $index) {
+        <div class="lyric-block" 
+             [class.active]="currentTimeMs >= lyric.startTimeMs && currentTimeMs <= lyric.endTimeMs"
+             [class.passed]="currentTimeMs > lyric.endTimeMs"
+             [class.upcoming]="currentTimeMs < lyric.startTimeMs">
+             
+          @if (currentTimeMs >= lyric.startTimeMs && currentTimeMs <= lyric.endTimeMs) {
+            <h2 class="lyric-en">
+              @for (word of validatedWordsForActiveBlock; track word.index) {
+                <span class="word-span" [class]="'word-' + word.status">
+                  {{ word.text }}
+                </span>
+              }
+            </h2>
+          } @else {
+            <h2 class="lyric-en simple-phrase">{{ lyric.englishPhrase }}</h2>
+          }
+
+          <p class="lyric-pt">{{ lyric.portugueseTranslation }}</p>
+        </div>
+      }
 
   </section>
 

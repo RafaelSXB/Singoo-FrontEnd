@@ -1,9 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, OnDestroy, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { SongServices } from '../../services/song/song-services';
 import { SongDetailsDto } from '../../services/song/song-models';
 import { YouTubePlayer } from '@angular/youtube-player';
+import { SpeechRecognitionService, ValidatedWord } from '../../services/speech/speech-recognition';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-stage',
@@ -12,7 +14,7 @@ import { YouTubePlayer } from '@angular/youtube-player';
   templateUrl: './stage.html',
   styleUrls: ['./stage.css']
 })
-export class Stage implements OnInit {
+export class Stage implements OnInit, OnDestroy {
   @ViewChild(YouTubePlayer) player!: YouTubePlayer;
 
   songId: string | null = null;
@@ -26,13 +28,19 @@ export class Stage implements OnInit {
   isPlaying: boolean = false;
   nameSong: string = '';
   playerOrigin = window.location.origin;
+  validatedWordsForActiveBlock: ValidatedWord[] = [];
+  private speechSubscription!: Subscription;
+
+
+  private speechRecognitionService = inject(SpeechRecognitionService);
 
   constructor(
     private route: ActivatedRoute,
     private songService: SongServices,
     private location: Location,
     private cdr: ChangeDetectorRef
-  ) {}
+
+  ) { }
 
   ngOnInit(): void {
     if (!document.getElementById('youtube-iframe-api')) {
@@ -41,11 +49,18 @@ export class Stage implements OnInit {
       tag.src = 'https://www.youtube.com/iframe_api';
       document.body.appendChild(tag);
     }
- 
+
+
+    this.speechSubscription = this.speechRecognitionService.validatedWords$.subscribe((words) => {
+      this.validatedWordsForActiveBlock = words;
+    this.validatedWordsForActiveBlock.forEach(word => console.log(word.text, ' ', word.status));
+      this.cdr.markForCheck();
+    });
+
  
     this.songId = this.route.snapshot.paramMap.get('id');
     this.nameSong = this.route.snapshot.paramMap.get('nameSong') || '';
-    
+
     if (this.songId) {
       this.songService.getSongById(this.songId).subscribe({
         next: (data) => {
@@ -59,44 +74,44 @@ export class Stage implements OnInit {
         }
       });
     }
-       
   }
 
   onPlayerStateChange(event: any): void {
     this.isPlaying = (event.data === 1);
 
-    if (event.data === 1) { 
+    if (event.data === 1) {
       this.startLyricsSync();
-      console.log(this.player.getPlayerState());
-      this.playerState = this.player.getPlayerState() as number;  
-      
+      this.playerState = this.player.getPlayerState() as number;
     } else {
       this.stopLyricsSync();
-         this.playerState = this.player.getPlayerState() as number;  
-      console.log(this.player.getPlayerState());
+      this.playerState = this.player.getPlayerState() as number;
     }
-
-   
   }
-     
-  
-
 
   startLyricsSync(): void {
     this.syncInterval = setInterval(() => {
       if (this.player && this.songDetails && this.songDetails.lyrics) {
         this.currentTimeMs = this.player.getCurrentTime() * 1000;
-        
+
         const newIndex = this.songDetails.lyrics.findIndex(
           lyric => this.currentTimeMs >= lyric.startTimeMs && this.currentTimeMs <= lyric.endTimeMs
         );
 
         if (newIndex !== this.currentLyricIndex) {
           this.currentLyricIndex = newIndex;
+
+          if (newIndex !== -1) {
+            this.speechRecognitionService.startListeningForPhrase(
+              this.songDetails.lyrics[newIndex].englishPhrase
+            );
+          } else {
+            this.speechRecognitionService.stopListening();
+            this.validatedWordsForActiveBlock = [];
+          }
           this.cdr.markForCheck();
         }
       }
-    }, 100);
+    }, 500);
   }
 
   stopLyricsSync(): void {
@@ -105,12 +120,10 @@ export class Stage implements OnInit {
     }
   }
 
-
   togglePlayPause(): void {
     if (!this.player) return;
     if (this.isPlaying) {
       this.player.pauseVideo();
-      
     } else {
       this.player.playVideo();
     }
@@ -122,5 +135,9 @@ export class Stage implements OnInit {
 
   ngOnDestroy(): void {
     this.stopLyricsSync();
+    this.speechRecognitionService.stopListening();
+    if (this.speechSubscription) {
+      this.speechSubscription.unsubscribe();
+    }
   }
 }
