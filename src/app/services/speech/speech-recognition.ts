@@ -55,27 +55,28 @@ export class SpeechRecognitionService {
 
    
   }
-
-  startListeningForPhrase(phrase: string) {
+startListeningForPhrase(phrase: string) {
     if (!this.recognition) return;
 
- 
-    this.phraseToValidate = phrase.toLowerCase(); 
+    // Se receber uma frase vazia (instrumental), apenas limpa a variável
+    this.phraseToValidate = phrase ? phrase.toLowerCase() : ''; 
 
-    const initialValidatedWords: ValidatedWord[] = this.phraseToValidate
-      .split(' ')
-      .map((word, index) => ({ text: word, status: 'pending', index }));
-      
-    this.validationResultSubject.next(initialValidatedWords);
+    if (this.phraseToValidate) {
+      const initialValidatedWords: ValidatedWord[] = this.phraseToValidate
+        .split(' ')
+        .map((word, index) => ({ text: word, status: 'pending', index }));
+      this.validationResultSubject.next(initialValidatedWords);
+    } else {
+      // Instrumental: Limpa a lista de palavras para não mostrar luzes
+      this.validationResultSubject.next([]);
+    }
 
-
+    // Liga o motor APENAS se estiver desligado
     if (!this.isListening) {
       try {
         this.recognition.start();
         this.isListening = true;
       } catch (e) {
-
-        console.warn('Microfone já estava ativo em segundo plano.', e);
         this.isListening = true; 
       }
     }

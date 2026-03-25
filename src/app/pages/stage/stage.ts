@@ -30,7 +30,7 @@ export class Stage implements OnInit, OnDestroy {
   playerOrigin = window.location.origin;
   validatedWordsForActiveBlock: ValidatedWord[] = [];
   private speechSubscription!: Subscription;
-
+userWantsToPlay: boolean = false; 
 
   private speechRecognitionService = inject(SpeechRecognitionService);
 
@@ -39,7 +39,8 @@ export class Stage implements OnInit, OnDestroy {
     private songService: SongServices,
     private location: Location,
     private cdr: ChangeDetectorRef
-
+    
+ 
   ) { }
 
   ngOnInit(): void {
@@ -50,14 +51,14 @@ export class Stage implements OnInit, OnDestroy {
       document.body.appendChild(tag);
     }
 
-
+    // 1. LIGAR O MICROFONE LOGO (Independente de a música já ter carregado ou não)
     this.speechSubscription = this.speechRecognitionService.validatedWords$.subscribe((words) => {
       this.validatedWordsForActiveBlock = words;
     this.validatedWordsForActiveBlock.forEach(word => console.log(word.text, ' ', word.status));
       this.cdr.markForCheck();
     });
 
- 
+    // 2. CARREGAR A MÚSICA
     this.songId = this.route.snapshot.paramMap.get('id');
     this.nameSong = this.route.snapshot.paramMap.get('nameSong') || '';
 
@@ -76,15 +77,22 @@ export class Stage implements OnInit, OnDestroy {
     }
   }
 
-  onPlayerStateChange(event: any): void {
+onPlayerStateChange(event: any): void {
     this.isPlaying = (event.data === 1);
+    this.playerState = event.data as number;
 
-    if (event.data === 1) {
+    if (event.data === 1) { // A TOCAR
       this.startLyricsSync();
-      this.playerState = this.player.getPlayerState() as number;
-    } else {
+    } 
+    else if (event.data === 2) { // PAUSADO
       this.stopLyricsSync();
-      this.playerState = this.player.getPlayerState() as number;
+      
+
+      if (this.userWantsToPlay) {
+        setTimeout(() => {
+          this.player.playVideo(); // Forçamos o play por cima das regras do Android!
+        }, 100);
+      }
     }
   }
 
@@ -105,7 +113,7 @@ export class Stage implements OnInit, OnDestroy {
               this.songDetails.lyrics[newIndex].englishPhrase
             );
           } else {
-            
+            this.speechRecognitionService.stopListening();
             this.validatedWordsForActiveBlock = [];
           }
           this.cdr.markForCheck();
@@ -120,11 +128,17 @@ export class Stage implements OnInit, OnDestroy {
     }
   }
 
-  togglePlayPause(): void {
+ togglePlayPause(): void {
     if (!this.player) return;
     if (this.isPlaying) {
+      this.userWantsToPlay = false; // Utilizador quer mesmo pausar
       this.player.pauseVideo();
+      this.speechRecognitionService.stopListening(); // Desliga o mic para poupar bateria
     } else {
+      this.userWantsToPlay = true; // Utilizador quer tocar a música!
+      
+      // Acorda o microfone invisível ANTES de dar o Play, para o Android não se assustar
+      this.speechRecognitionService.startListeningForPhrase('');
       this.player.playVideo();
     }
   }
