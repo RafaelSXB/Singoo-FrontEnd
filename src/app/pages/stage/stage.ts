@@ -18,6 +18,7 @@ export class Stage implements OnInit {
   songId: string | null = null;
   songDetails: SongDetailsDto | null = null;
   isLoading = true;
+  playerState: number = 1;
 
   currentLyricIndex: number = -1;
   syncInterval: any;
@@ -40,7 +41,8 @@ export class Stage implements OnInit {
       tag.src = 'https://www.youtube.com/iframe_api';
       document.body.appendChild(tag);
     }
-
+ 
+ 
     this.songId = this.route.snapshot.paramMap.get('id');
     this.nameSong = this.route.snapshot.paramMap.get('nameSong') || '';
     
@@ -57,6 +59,7 @@ export class Stage implements OnInit {
         }
       });
     }
+       
   }
 
   onPlayerStateChange(event: any): void {
@@ -64,10 +67,20 @@ export class Stage implements OnInit {
 
     if (event.data === 1) { 
       this.startLyricsSync();
+      console.log(this.player.getPlayerState());
+      this.playerState = this.player.getPlayerState() as number;  
+      
     } else {
       this.stopLyricsSync();
+         this.playerState = this.player.getPlayerState() as number;  
+      console.log(this.player.getPlayerState());
     }
+
+   
   }
+     
+  
+
 
   startLyricsSync(): void {
     this.syncInterval = setInterval(() => {
@@ -92,11 +105,12 @@ export class Stage implements OnInit {
     }
   }
 
-  // O nosso controlador limpo
+
   togglePlayPause(): void {
     if (!this.player) return;
     if (this.isPlaying) {
       this.player.pauseVideo();
+      
     } else {
       this.player.playVideo();
     }
