@@ -41,7 +41,7 @@ align-self: center;
   background-color: var(--primary-green);
   border-radius: 50%;
   filter: blur(5vh);
-  opacity: 0.3;
+  opacity: 1;
   z-index: 11;
 }
 .spacer {
