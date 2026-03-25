@@ -105,7 +105,7 @@ export class Stage implements OnInit, OnDestroy {
               this.songDetails.lyrics[newIndex].englishPhrase
             );
           } else {
-            this.speechRecognitionService.stopListening();
+            
             this.validatedWordsForActiveBlock = [];
           }
           this.cdr.markForCheck();
