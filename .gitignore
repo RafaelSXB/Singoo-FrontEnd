@@ -38,6 +38,7 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+src/assets/vosk-model-small-en-us-0.15.zip
 
 # System files
 .DS_Store

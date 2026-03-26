@@ -20,6 +20,7 @@ export class Stage implements OnInit, OnDestroy {
   songId: string | null = null;
   songDetails: SongDetailsDto | null = null;
   isLoading = true;
+  isVoskLoading = true; 
   playerState: number = 1;
 
   currentLyricIndex: number = -1;
@@ -29,9 +30,9 @@ export class Stage implements OnInit, OnDestroy {
   nameSong: string = '';
   playerOrigin = window.location.origin;
   validatedWordsForActiveBlock: ValidatedWord[] = [];
+  
   private speechSubscription!: Subscription;
-userWantsToPlay: boolean = false; 
-
+  private modelSubscription!: Subscription;
   private speechRecognitionService = inject(SpeechRecognitionService);
 
   constructor(
@@ -39,8 +40,6 @@ userWantsToPlay: boolean = false;
     private songService: SongServices,
     private location: Location,
     private cdr: ChangeDetectorRef
-    
- 
   ) { }
 
   ngOnInit(): void {
@@ -51,14 +50,18 @@ userWantsToPlay: boolean = false;
       document.body.appendChild(tag);
     }
 
-    // 1. LIGAR O MICROFONE LOGO (Independente de a música já ter carregado ou não)
+
     this.speechSubscription = this.speechRecognitionService.validatedWords$.subscribe((words) => {
       this.validatedWordsForActiveBlock = words;
-    this.validatedWordsForActiveBlock.forEach(word => console.log(word.text, ' ', word.status));
       this.cdr.markForCheck();
     });
 
-    // 2. CARREGAR A MÚSICA
+
+    this.modelSubscription = this.speechRecognitionService.isModelLoading$.subscribe((loading) => {
+      this.isVoskLoading = loading;
+      this.cdr.markForCheck();
+    });
+
     this.songId = this.route.snapshot.paramMap.get('id');
     this.nameSong = this.route.snapshot.paramMap.get('nameSong') || '';
 
@@ -77,22 +80,14 @@ userWantsToPlay: boolean = false;
     }
   }
 
-onPlayerStateChange(event: any): void {
+  onPlayerStateChange(event: any): void {
     this.isPlaying = (event.data === 1);
     this.playerState = event.data as number;
 
-    if (event.data === 1) { // A TOCAR
+    if (event.data === 1) { 
       this.startLyricsSync();
-    } 
-    else if (event.data === 2) { // PAUSADO
+    } else { 
       this.stopLyricsSync();
-      
-
-      if (this.userWantsToPlay) {
-        setTimeout(() => {
-          this.player.playVideo(); // Forçamos o play por cima das regras do Android!
-        }, 100);
-      }
     }
   }
 
@@ -109,17 +104,16 @@ onPlayerStateChange(event: any): void {
           this.currentLyricIndex = newIndex;
 
           if (newIndex !== -1) {
-            this.speechRecognitionService.startListeningForPhrase(
-              this.songDetails.lyrics[newIndex].englishPhrase
-            );
+            
+            this.speechRecognitionService.setPhrase(this.songDetails.lyrics[newIndex].englishPhrase);
           } else {
-            this.speechRecognitionService.stopListening();
-            this.validatedWordsForActiveBlock = [];
+           
+            this.speechRecognitionService.setPhrase('');
           }
           this.cdr.markForCheck();
         }
       }
-    }, 500);
+    }, 250);
   }
 
   stopLyricsSync(): void {
@@ -128,17 +122,20 @@ onPlayerStateChange(event: any): void {
     }
   }
 
- togglePlayPause(): void {
+  togglePlayPause(): void {
     if (!this.player) return;
+    
+    
+    if (this.isVoskLoading) {
+      console.warn("Aguarde, a preparar a IA...");
+      return; 
+    }
+
     if (this.isPlaying) {
-      this.userWantsToPlay = false; // Utilizador quer mesmo pausar
       this.player.pauseVideo();
-      this.speechRecognitionService.stopListening(); // Desliga o mic para poupar bateria
+      this.speechRecognitionService.stopMic();
     } else {
-      this.userWantsToPlay = true; // Utilizador quer tocar a música!
-      
-      // Acorda o microfone invisível ANTES de dar o Play, para o Android não se assustar
-      this.speechRecognitionService.startListeningForPhrase('');
+      this.speechRecognitionService.startMic();
       this.player.playVideo();
     }
   }
@@ -149,9 +146,16 @@ onPlayerStateChange(event: any): void {
 
   ngOnDestroy(): void {
     this.stopLyricsSync();
-    this.speechRecognitionService.stopListening();
+    if (this.player) {
+      this.player.pauseVideo();
+    }
+    this.speechRecognitionService.stopMic();
+    
     if (this.speechSubscription) {
       this.speechSubscription.unsubscribe();
+    }
+    if (this.modelSubscription) {
+      this.modelSubscription.unsubscribe();
     }
   }
 }

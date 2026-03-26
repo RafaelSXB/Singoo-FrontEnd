@@ -1,7 +1,7 @@
-// src/app/services/speech/speech-recognition.ts
 import { Injectable } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
-
+import { createModel } from 'vosk-browser';
+import { environment } from '../../../environments/environment'
 export type ValidationStatus = 'pending' | 'correct' | 'incorrect';
 
 export interface ValidatedWord {
@@ -10,55 +10,132 @@ export interface ValidatedWord {
   index: number;
 }
 
-declare var webkitSpeechRecognition: any;
-declare var SpeechRecognition: any;
-
 @Injectable({
   providedIn: 'root'
 })
 export class SpeechRecognitionService {
-  private recognition: any;
   private phraseToValidate: string = '';
   
   private validationResultSubject = new Subject<ValidatedWord[]>();
-
   validatedWords$: Observable<ValidatedWord[]> = this.validationResultSubject.asObservable();
 
+  // Observable para avisar o ecrã se a IA ainda está a ser descarregada/carregada
+  private modelLoadingSubject = new Subject<boolean>();
+  isModelLoading$: Observable<boolean> = this.modelLoadingSubject.asObservable();
+
+  private recognizer: any;
+  private audioContext: AudioContext | null = null;
+  private mediaStream: MediaStream | null = null;
+  private source: MediaStreamAudioSourceNode | null = null;
+  private processor: ScriptProcessorNode | null = null;
+
   private isListening = false;
+  private modelReady = false;
 
   constructor() {
-    this.initSpeechRecognition();
+    this.initVoskModel();
   }
 
-  private initSpeechRecognition() {
-    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  private async initVoskModel() {
+this.modelLoadingSubject.next(true); 
+    
+    try {
+  
+      const modelUrl = environment.voskModelUrl;
+      console.log(environment.voskModelUrl);
+      const model = await createModel(modelUrl);
+      this.recognizer = new model.KaldiRecognizer(48000);
+      
+      // Quando a IA tem certeza do que ouviu
+      this.recognizer.onResult = (message: any) => {
+        if (message.result && message.result.text) {
+          this.validatePhrase(message.result.text);
+        }
+      };
 
-    if (!SpeechRecognitionAPI) {
-      console.error('Web Speech API não suportada neste navegador.');
+      // Enquanto a IA ainda está a tentar adivinhar a palavra
+      this.recognizer.onPartialResult = (message: any) => {
+        if (message.result && message.result.partial) {
+          this.validatePhrase(message.result.partial);
+        }
+      };
+
+      this.modelReady = true;
+      this.modelLoadingSubject.next(false); 
+      console.log(" IA Vosk carregada e pronta a usar!");
+
+    } catch (error) {
+      console.error("Erro ao carregar o modelo Vosk:", error);
+      this.modelLoadingSubject.next(false);
+    }
+  }
+
+  async startMic() {
+    if (!this.modelReady || this.isListening) {
+      console.log("Aguarde, a IA ainda não está pronta ou o mic já está ligado.");
       return;
     }
 
-    this.recognition = new SpeechRecognitionAPI();
-    this.recognition.continuous = true; 
-    this.recognition.interimResults = true; 
-    this.recognition.lang = 'en-US'; 
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      this.audioContext = new AudioContextClass();
+      
 
-    this.recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (!event.results[i].isFinal) {
-          interimTranscript += event.results[i][0].transcript;
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          channelCount: 1,
+          sampleRate: 48000
+        } 
+      });
+
+      this.source = this.audioContext.createMediaStreamSource(this.mediaStream);
+      this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+
+      this.processor.onaudioprocess = (event) => {
+        try {
+          const audioData = event.inputBuffer.getChannelData(0);
+          if (this.recognizer) {
+            this.recognizer.acceptWaveform(audioData);
+          }
+        } catch (error) {
+        
         }
-      }
-      this.validatePhrase(interimTranscript.trim());
-    };
+      };
 
-   
+      this.source.connect(this.processor);
+      this.processor.connect(this.audioContext.destination);
+      this.isListening = true;
+
+    } catch (error) {
+      console.error("Erro ao aceder ao microfone com Vosk:", error);
+    }
   }
-startListeningForPhrase(phrase: string) {
-    if (!this.recognition) return;
 
-    // Se receber uma frase vazia (instrumental), apenas limpa a variável
+  stopMic() {
+    if (this.isListening) {
+      if (this.processor) {
+        this.processor.disconnect();
+        this.processor = null;
+      }
+      if (this.source) {
+        this.source.disconnect();
+        this.source = null;
+      }
+      if (this.mediaStream) {
+        this.mediaStream.getTracks().forEach(track => track.stop());
+        this.mediaStream = null;
+      }
+      if (this.audioContext) {
+        this.audioContext.close();
+        this.audioContext = null;
+      }
+      this.isListening = false;
+    }
+  }
+
+  setPhrase(phrase: string) {
     this.phraseToValidate = phrase ? phrase.toLowerCase() : ''; 
 
     if (this.phraseToValidate) {
@@ -67,27 +144,7 @@ startListeningForPhrase(phrase: string) {
         .map((word, index) => ({ text: word, status: 'pending', index }));
       this.validationResultSubject.next(initialValidatedWords);
     } else {
-      // Instrumental: Limpa a lista de palavras para não mostrar luzes
       this.validationResultSubject.next([]);
-    }
-
-    // Liga o motor APENAS se estiver desligado
-    if (!this.isListening) {
-      try {
-        this.recognition.start();
-        this.isListening = true;
-      } catch (e) {
-        this.isListening = true; 
-      }
-    }
-  }
-
-  stopListening() {
-    if (this.recognition && this.isListening) {
-      try {
-        this.recognition.stop();
-      } catch(e) {}
-      this.isListening = false;
     }
   }
 
@@ -98,12 +155,14 @@ startListeningForPhrase(phrase: string) {
     const originalWords = this.phraseToValidate.split(' ');
     
     const validatedWords: ValidatedWord[] = originalWords.map((originalWord, index) => {
-      const wordRegex = new RegExp(`\\b${originalWord}\\b`, 'i');
+      
+      const cleanWord = originalWord.replace(/[.,!?]/g, '');
+      const wordRegex = new RegExp(`\\b${cleanWord}\\b`, 'i');
       let status: ValidationStatus = 'pending';
       
       if (wordRegex.test(spokenText)) {
         status = 'correct';
-      } else if (spokenText.includes(originalWord)) {
+      } else if (spokenText.includes(cleanWord)) {
         status = 'correct';
       } else {
         if (spokenText.trim().length > 0) {
