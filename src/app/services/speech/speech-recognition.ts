@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { createModel } from 'vosk-browser';
-import { environment } from '../../../environments/environment'
+import { environment } from '../../../environments/environment';
+
 export type ValidationStatus = 'pending' | 'correct' | 'incorrect';
 
 export interface ValidatedWord {
   text: string;
+  cleanText: string;
   status: ValidationStatus;
   index: number;
 }
@@ -15,19 +17,23 @@ export interface ValidatedWord {
 })
 export class SpeechRecognitionService {
   private phraseToValidate: string = '';
-  
+  private currentPhraseWords: ValidatedWord[] = [];
+
   private validationResultSubject = new Subject<ValidatedWord[]>();
   validatedWords$: Observable<ValidatedWord[]> = this.validationResultSubject.asObservable();
 
-  // Observable para avisar o ecrã se a IA ainda está a ser descarregada/carregada
   private modelLoadingSubject = new Subject<boolean>();
   isModelLoading$: Observable<boolean> = this.modelLoadingSubject.asObservable();
 
-  private recognizer: any;
+  private voskModel: any = null;
+  private recognizer: any = null;
+
   private audioContext: AudioContext | null = null;
   private mediaStream: MediaStream | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
-  private processor: ScriptProcessorNode | null = null;
+
+
+  private processor: AudioWorkletNode | null = null;
 
   private isListening = false;
   private modelReady = false;
@@ -37,79 +43,90 @@ export class SpeechRecognitionService {
   }
 
   private async initVoskModel() {
-this.modelLoadingSubject.next(true); 
-    
+    this.modelLoadingSubject.next(true);
     try {
-  
+      console.log("🚀 [VOSK] A iniciar o carregamento do modelo...");
       const modelUrl = environment.voskModelUrl;
-      console.log(environment.voskModelUrl);
-      const model = await createModel(modelUrl);
-      this.recognizer = new model.KaldiRecognizer(48000);
-      
-      // Quando a IA tem certeza do que ouviu
-      this.recognizer.onResult = (message: any) => {
-        if (message.result && message.result.text) {
-          this.validatePhrase(message.result.text);
-        }
-      };
-
-      // Enquanto a IA ainda está a tentar adivinhar a palavra
-      this.recognizer.onPartialResult = (message: any) => {
-        if (message.result && message.result.partial) {
-          this.validatePhrase(message.result.partial);
-        }
-      };
-
+      this.voskModel = await createModel(modelUrl);
       this.modelReady = true;
-      this.modelLoadingSubject.next(false); 
-      console.log(" IA Vosk carregada e pronta a usar!");
-
+      this.modelLoadingSubject.next(false);
+      console.log("🟢 [VOSK] Modelo 100% carregado na memória!");
     } catch (error) {
-      console.error("Erro ao carregar o modelo Vosk:", error);
+      console.error("🔴 [VOSK ERRO FATAL] Falha ao carregar o modelo:", error);
       this.modelLoadingSubject.next(false);
     }
   }
 
   async startMic() {
-    if (!this.modelReady || this.isListening) {
-      console.log("Aguarde, a IA ainda não está pronta ou o mic já está ligado.");
-      return;
-    }
+    if (!this.modelReady || this.isListening) return;
 
     try {
+      console.log("🎙️ [SISTEMA] A preparar a placa de som...");
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      this.audioContext = new AudioContextClass();
-      
 
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+      this.audioContext = new AudioContextClass({ sampleRate: 16000 });
+
+      this.recognizer = new this.voskModel.KaldiRecognizer(16000);
+
+      this.recognizer.on("partialresult", (message: any) => {
+        if (message.result && message.result.partial) {
+          this.validatePhrase(message.result.partial);
+        }
+      });
+
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          channelCount: 1,
-          sampleRate: 48000
-        } 
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 1
+        }
       });
 
       this.source = this.audioContext.createMediaStreamSource(this.mediaStream);
-      this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
 
-      this.processor.onaudioprocess = (event) => {
+      const micAmplifier = this.audioContext.createGain();
+      micAmplifier.gain.value = 3.0;
+
+
+      await this.audioContext.audioWorklet.addModule('/assets/audio-processor.js');
+
+      this.processor = new AudioWorkletNode(this.audioContext, 'audio-processor');
+
+      let logCounter = 0;
+      const reusableBuffer = this.audioContext.createBuffer(1, 4096, this.audioContext.sampleRate);
+      this.processor.port.onmessage = (event) => {
         try {
-          const audioData = event.inputBuffer.getChannelData(0);
-          if (this.recognizer) {
-            this.recognizer.acceptWaveform(audioData);
+          const audioData = event.data;
+
+
+         if (this.recognizer && this.audioContext) {
+            // Apenas sobrescreve os dados antigos na mesma caixa de memória
+            reusableBuffer.copyToChannel(audioData, 0);
+            this.recognizer.acceptWaveform(reusableBuffer);
           }
         } catch (error) {
-        
+          console.error("[WORKER ERRO] Falha ao processar pacote:", error);
         }
       };
 
-      this.source.connect(this.processor);
-      this.processor.connect(this.audioContext.destination);
+      const muteNode = this.audioContext.createGain();
+      muteNode.gain.value = 0.00001;
+
+      this.source.connect(micAmplifier);
+      micAmplifier.connect(this.processor);
+      this.processor.connect(muteNode);
+      muteNode.connect(this.audioContext.destination);
+
       this.isListening = true;
+ 
 
     } catch (error) {
-      console.error("Erro ao aceder ao microfone com Vosk:", error);
+      console.error("[ERRO MIC] Falha ao aceder ao microfone:", error);
     }
   }
 
@@ -127,52 +144,67 @@ this.modelLoadingSubject.next(true);
         this.mediaStream.getTracks().forEach(track => track.stop());
         this.mediaStream = null;
       }
+      if (this.recognizer) {
+
+        if (typeof this.recognizer.free === 'function') {
+          this.recognizer.free();
+        }
+        this.recognizer = null;
+      }
       if (this.audioContext) {
         this.audioContext.close();
         this.audioContext = null;
       }
       this.isListening = false;
+
     }
   }
 
   setPhrase(phrase: string) {
-    this.phraseToValidate = phrase ? phrase.toLowerCase() : ''; 
+    this.phraseToValidate = phrase ? phrase.toLowerCase() : '';
 
     if (this.phraseToValidate) {
-      const initialValidatedWords: ValidatedWord[] = this.phraseToValidate
+      this.currentPhraseWords = this.phraseToValidate
         .split(' ')
-        .map((word, index) => ({ text: word, status: 'pending', index }));
-      this.validationResultSubject.next(initialValidatedWords);
+        .map((word, index) => ({
+          text: word,
+          cleanText: word.toLowerCase().replace(/[.,!?]/g, ''),
+          status: 'pending',
+          index
+        }));
+
+      this.validationResultSubject.next([...this.currentPhraseWords]);
     } else {
+      this.currentPhraseWords = [];
       this.validationResultSubject.next([]);
     }
   }
 
   private validatePhrase(transcript: string) {
-    if (!this.phraseToValidate) return;
+    if (!this.phraseToValidate || this.currentPhraseWords.length === 0) return;
 
     const spokenText = transcript.toLowerCase();
-    const originalWords = this.phraseToValidate.split(' ');
-    
-    const validatedWords: ValidatedWord[] = originalWords.map((originalWord, index) => {
-      
-      const cleanWord = originalWord.replace(/[.,!?]/g, '');
-      const wordRegex = new RegExp(`\\b${cleanWord}\\b`, 'i');
-      let status: ValidationStatus = 'pending';
-      
-      if (wordRegex.test(spokenText)) {
-        status = 'correct';
-      } else if (spokenText.includes(cleanWord)) {
-        status = 'correct';
-      } else {
-        if (spokenText.trim().length > 0) {
-          status = 'incorrect';
-        }
+
+    this.currentPhraseWords = this.currentPhraseWords.map((wordObj) => {
+
+      const cleanWord = wordObj.cleanText;
+
+      console.log(spokenText);
+      if (spokenText.includes(cleanWord)) {
+        return { ...wordObj, status: 'correct' };
       }
-      
-      return { text: originalWord, status, index };
+
+      if (cleanWord.length > 4 && spokenText.includes(cleanWord.substring(0, 4))) {
+        return { ...wordObj, status: 'correct' };
+      }
+
+      if (spokenText.trim().length > 0) {
+        return { ...wordObj, status: 'pending' };
+      }
+
+      return wordObj;
     });
 
-    this.validationResultSubject.next(validatedWords);
+    this.validationResultSubject.next([...this.currentPhraseWords]);
   }
 }

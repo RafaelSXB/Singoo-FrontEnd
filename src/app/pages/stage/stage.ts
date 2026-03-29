@@ -50,12 +50,10 @@ export class Stage implements OnInit, OnDestroy {
       document.body.appendChild(tag);
     }
 
-
     this.speechSubscription = this.speechRecognitionService.validatedWords$.subscribe((words) => {
       this.validatedWordsForActiveBlock = words;
       this.cdr.markForCheck();
     });
-
 
     this.modelSubscription = this.speechRecognitionService.isModelLoading$.subscribe((loading) => {
       this.isVoskLoading = loading;
@@ -104,10 +102,8 @@ export class Stage implements OnInit, OnDestroy {
           this.currentLyricIndex = newIndex;
 
           if (newIndex !== -1) {
-            
             this.speechRecognitionService.setPhrase(this.songDetails.lyrics[newIndex].englishPhrase);
           } else {
-           
             this.speechRecognitionService.setPhrase('');
           }
           this.cdr.markForCheck();
@@ -125,9 +121,7 @@ export class Stage implements OnInit, OnDestroy {
   togglePlayPause(): void {
     if (!this.player) return;
     
-    
     if (this.isVoskLoading) {
-      console.warn("Aguarde, a preparar a IA...");
       return; 
     }
 
