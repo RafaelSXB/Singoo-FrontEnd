@@ -45,14 +45,14 @@ export class SpeechRecognitionService {
   private async initVoskModel() {
     this.modelLoadingSubject.next(true);
     try {
-      console.log("🚀 [VOSK] A iniciar o carregamento do modelo...");
+
       const modelUrl = environment.voskModelUrl;
       this.voskModel = await createModel(modelUrl);
       this.modelReady = true;
       this.modelLoadingSubject.next(false);
-      console.log("🟢 [VOSK] Modelo 100% carregado na memória!");
+
     } catch (error) {
-      console.error("🔴 [VOSK ERRO FATAL] Falha ao carregar o modelo:", error);
+      console.error("[VOSK ERRO FATAL] Falha ao carregar o modelo:", error);
       this.modelLoadingSubject.next(false);
     }
   }
@@ -61,7 +61,7 @@ export class SpeechRecognitionService {
     if (!this.modelReady || this.isListening) return;
 
     try {
-      console.log("🎙️ [SISTEMA] A preparar a placa de som...");
+
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
 
       this.audioContext = new AudioContextClass({ sampleRate: 16000 });
@@ -105,7 +105,7 @@ export class SpeechRecognitionService {
 
 
          if (this.recognizer && this.audioContext) {
-            // Apenas sobrescreve os dados antigos na mesma caixa de memória
+         
             reusableBuffer.copyToChannel(audioData, 0);
             this.recognizer.acceptWaveform(reusableBuffer);
           }

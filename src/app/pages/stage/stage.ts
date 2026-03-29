@@ -109,7 +109,7 @@ export class Stage implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       }
-    }, 250);
+    }, 600);
   }
 
   stopLyricsSync(): void {
