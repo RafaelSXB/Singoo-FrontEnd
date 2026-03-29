@@ -33,6 +33,14 @@ export function initializeMockDatabase(): void {
         youtubeVideoId: 'JGwWNGJdvx8',
         difficulty: 'BEGINNER',
         tierRequired: 'FREE'
+      },
+      {
+        id: '323e4567-e89b-12d3-a456-426614174003',
+        title: 'I Love Rock N Roll',
+        artist: 'Joan Jett and the Blackhearts',
+        youtubeVideoId: 'aO3ip1gN1vg',
+        difficulty: 'BEGINNER',
+        tierRequired: 'FREE'
       }
     ];
     localStorage.setItem(DB_SONGS_LIST_KEY, JSON.stringify(mockSongsList));
@@ -273,7 +281,116 @@ export function initializeMockDatabase(): void {
             "portugueseTranslation": "Sim, você disse 'para sempre', agora eu dirijo sozinha pela sua rua"
           }
         ]
-      }
+      },
+      {    
+         "id": "123e4567-e89b-12d3-a456-426614174003",
+        "youtubeVideoId": "aO3ip1gN1vg",
+  "lyrics": [
+    {
+      "startTimeMs": 15000,
+      "endTimeMs": 20000,
+      "englishPhrase": "I saw him dancin' there by the record machine",
+      "portugueseTranslation": "Eu o vi dançando ali perto da vitrola"
+    },
+    {
+      "startTimeMs": 20000,
+      "endTimeMs": 25000,
+      "englishPhrase": "I knew he musta been about seventeen",
+      "portugueseTranslation": "Eu sabia que ele devia ter uns dezessete anos"
+    },
+    {
+      "startTimeMs": 25000,
+      "endTimeMs": 31000,
+      "englishPhrase": "The beat was goin' strong, playin' my favorite song",
+      "portugueseTranslation": "A batida estava forte, tocando minha música favorita"
+    },
+    {
+      "startTimeMs": 31000,
+      "endTimeMs": 42000,
+      "englishPhrase": "And I could tell it wouldn't be long 'til he was with me, yeah, me",
+      "portugueseTranslation": "E eu percebi que não demoraria muito até ele estar comigo, sim, comigo"
+    },
+    {
+      "startTimeMs": 42000,
+      "endTimeMs": 47000,
+      "englishPhrase": "I love rock 'n roll, so put another dime in the jukebox, baby",
+      "portugueseTranslation": "Eu amo rock 'n roll, então coloque outra moeda na jukebox, querido"
+    },
+    {
+      "startTimeMs": 47000,
+      "endTimeMs": 52000,
+      "englishPhrase": "I love rock 'n roll, so come and take your time and dance with me",
+      "portugueseTranslation": "Eu amo rock 'n roll, então venha, não tenha pressa e dance comigo"
+    },
+    {
+      "startTimeMs": 56000,
+      "endTimeMs": 61000,
+      "englishPhrase": "He smiled, so I got up and asked for his name",
+      "portugueseTranslation": "Ele sorriu, então eu levantei e perguntei seu nome"
+    },
+    {
+      "startTimeMs": 61000,
+      "endTimeMs": 66000,
+      "englishPhrase": "\"That don't matter,\" he said, \"'cause it's all the same\"",
+      "portugueseTranslation": "\"Isso não importa\", ele disse, \"pois é tudo a mesma coisa\""
+    },
+    {
+      "startTimeMs": 66000,
+      "endTimeMs": 72000,
+      "englishPhrase": "Said, \"Can I take you home where we can be alone?\"",
+      "portugueseTranslation": "Disse: \"Posso te levar para casa, onde podemos ficar sozinhos?\""
+    },
+    {
+      "startTimeMs": 72000,
+      "endTimeMs": 83000,
+      "englishPhrase": "And next we were movin' on, he was with me, yeah, me, singin'",
+      "portugueseTranslation": "E logo depois estávamos indo, ele estava comigo, sim, comigo, cantando"
+    },
+    {
+      "startTimeMs": 83000,
+      "endTimeMs": 88000,
+      "englishPhrase": "I love rock 'n roll, so put another dime in the jukebox, baby",
+      "portugueseTranslation": "Eu amo rock 'n roll, então coloque outra moeda na jukebox, querido"
+    },
+    {
+      "startTimeMs": 88000,
+      "endTimeMs": 93000,
+      "englishPhrase": "I love rock 'n roll, so come and take your time and dance with me",
+      "portugueseTranslation": "Eu amo rock 'n roll, então venha, não tenha pressa e dance comigo"
+    },
+    {
+      "startTimeMs": 108000,
+      "endTimeMs": 114000,
+      "englishPhrase": "Said, \"Can I take you home where we can be alone?\"",
+      "portugueseTranslation": "Disse: \"Posso te levar para casa, onde podemos ficar sozinhos?\""
+    },
+    {
+      "startTimeMs": 114000,
+      "endTimeMs": 125000,
+      "englishPhrase": "Next we were movin' on, he was with me, yeah, me, and we'll be movin' on",
+      "portugueseTranslation": "Logo depois estávamos indo, ele estava comigo, sim, comigo, e nós continuaremos indo"
+    },
+    {
+      "startTimeMs": 125000,
+      "endTimeMs": 130000,
+      "englishPhrase": "And singin' that same old song, yeah, with me, singin'",
+      "portugueseTranslation": "E cantando aquela mesma velha canção, sim, comigo, cantando"
+    },
+    {
+      "startTimeMs": 130000,
+      "endTimeMs": 135000,
+      "englishPhrase": "I love rock 'n roll, so put another dime in the jukebox, baby",
+      "portugueseTranslation": "Eu amo rock 'n roll, então coloque outra moeda na jukebox, querido"
+    },
+    {
+      "startTimeMs": 135000,
+      "endTimeMs": 140000,
+      "englishPhrase": "I love rock 'n roll, so come and take your time and dance with me",
+      "portugueseTranslation": "Eu amo rock 'n roll, então venha, não tenha pressa e dance comigo"
+    }
+  ]
+}
+      
 
     ];
     localStorage.setItem(DB_SONGS_DETAILS_KEY, JSON.stringify(mockSongsDetails));
