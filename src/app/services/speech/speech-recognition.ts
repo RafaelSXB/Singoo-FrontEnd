@@ -57,6 +57,12 @@ export class SpeechRecognitionService {
     }
   }
 
+   cleanLyrics(lyricLine: string): string {
+  return lyricLine
+    .toLowerCase() 
+    .replace(/[^a-z\s']/g, '') 
+    .trim();
+}
   async startMic(lyricMusic: string[]) {
     if (!this.modelReady || this.isListening) return;
 

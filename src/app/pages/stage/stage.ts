@@ -71,7 +71,12 @@ export class Stage implements OnInit, OnDestroy {
           this.isLoading = false;
           this.cdr.markForCheck();
           data.lyrics.forEach(lyric => {
-            this.lyricMusic.push(lyric.englishPhrase);
+            lyric.englishPhrase.split(' ').forEach(word => {
+              const cleanedWord = this.cleanLyrics(word);
+              if (cleanedWord.length > 0) {
+                this.lyricMusic.push(cleanedWord);
+              }
+            });
           });
         },
         error: (err) => {
@@ -92,6 +97,13 @@ export class Stage implements OnInit, OnDestroy {
       this.stopLyricsSync();
     }
   }
+
+    cleanLyrics(lyricLine: string): string {
+  return lyricLine
+    .toLowerCase() 
+    .replace(/[^a-z\s']/g, '') 
+    .trim();
+}
 
   startLyricsSync(): void {
     this.syncInterval = setInterval(() => {
