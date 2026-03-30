@@ -39,7 +39,8 @@ testem.log
 /typings
 __screenshots__/
 src/assets/vosk-model-small-en-us-0.15.zip
-
+src/assets/vosk-model-en-us-0.22-lgraph.zip
+public/assets/vosk-model-en-us-0.22-lgraph.zip
 # System files
 .DS_Store
 Thumbs.db

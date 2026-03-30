@@ -57,16 +57,18 @@ export class SpeechRecognitionService {
     }
   }
 
-  async startMic() {
+  async startMic(lyricMusic: string[]) {
     if (!this.modelReady || this.isListening) return;
 
     try {
 
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-
+      const grammarList = [...lyricMusic, '[unk]'];
+      const grammarJson = JSON.stringify(grammarList);
       this.audioContext = new AudioContextClass({ sampleRate: 16000 });
 
-      this.recognizer = new this.voskModel.KaldiRecognizer(16000);
+      this.recognizer = new this.voskModel.KaldiRecognizer(16000, grammarJson);
+      console.log('Reconhecedor pronto para escutar apenas as palavras:', grammarList);
 
       this.recognizer.on("partialresult", (message: any) => {
         if (message.result && message.result.partial) {

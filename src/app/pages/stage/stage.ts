@@ -30,6 +30,7 @@ export class Stage implements OnInit, OnDestroy {
   nameSong: string = '';
   playerOrigin = window.location.origin;
   validatedWordsForActiveBlock: ValidatedWord[] = [];
+  lyricMusic: string[] = [];
   
   private speechSubscription!: Subscription;
   private modelSubscription!: Subscription;
@@ -69,6 +70,9 @@ export class Stage implements OnInit, OnDestroy {
           this.songDetails = data;
           this.isLoading = false;
           this.cdr.markForCheck();
+          data.lyrics.forEach(lyric => {
+            this.lyricMusic.push(lyric.englishPhrase);
+          });
         },
         error: (err) => {
           console.error('Erro ao carregar música', err);
@@ -129,7 +133,7 @@ export class Stage implements OnInit, OnDestroy {
       this.player.pauseVideo();
       this.speechRecognitionService.stopMic();
     } else {
-      this.speechRecognitionService.startMic();
+      this.speechRecognitionService.startMic(this.lyricMusic);
       this.player.playVideo();
     }
   }
