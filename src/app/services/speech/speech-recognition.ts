@@ -56,17 +56,16 @@ export class SpeechRecognitionService {
       this.modelLoadingSubject.next(false);
     }
   }
-
-   cleanLyrics(lyricLine: string): string {
-  return lyricLine
-    .toLowerCase() 
-    .replace(/[^a-z\s']/g, '') 
-    .trim();
-}
   async startMic(lyricMusic: string[]) {
+
     if (!this.modelReady || this.isListening) return;
 
+
+
     try {
+
+      console.log("🎙️ [SISTEMA] A preparar a placa de som...");
+
 
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       const grammarList = [...lyricMusic, '[unk]'];
@@ -76,67 +75,138 @@ export class SpeechRecognitionService {
       this.recognizer = new this.voskModel.KaldiRecognizer(16000, grammarJson);
       console.log('Reconhecedor pronto para escutar apenas as palavras:', grammarList);
 
+
+
+
+
+
       this.recognizer.on("partialresult", (message: any) => {
+
         if (message.result && message.result.partial) {
+
           this.validatePhrase(message.result.partial);
+
         }
+
       });
+
+
 
       if (this.audioContext.state === 'suspended') {
+
         await this.audioContext.resume();
+
       }
 
+
+
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
+
         audio: {
+
           echoCancellation: false,
+
           noiseSuppression: false,
+
           autoGainControl: false,
+
           channelCount: 1
+
         }
+
       });
+
+
 
       this.source = this.audioContext.createMediaStreamSource(this.mediaStream);
 
+
       const micAmplifier = this.audioContext.createGain();
-      micAmplifier.gain.value = 3.0;
+
+      micAmplifier.gain.value = 1.0;
+
+
+      // ==========================================
+
+      // A NOVA ARQUITETURA: AUDIO WORKLET
+
+      // ==========================================
 
 
       await this.audioContext.audioWorklet.addModule('/assets/audio-processor.js');
 
+
       this.processor = new AudioWorkletNode(this.audioContext, 'audio-processor');
 
-      let logCounter = 0;
-      const reusableBuffer = this.audioContext.createBuffer(1, 4096, this.audioContext.sampleRate);
+     const muteNode = this.audioContext.createGain();
+
+      muteNode.gain.value = 0.00001;
+
+
+
+      this.source.connect(micAmplifier);
+
+      micAmplifier.connect(this.processor);
+
+      this.processor.connect(muteNode);
+
+      muteNode.connect(this.audioContext.destination);
+
+
+ 
+
+
+
       this.processor.port.onmessage = (event) => {
+
         try {
+
           const audioData = event.data;
 
 
-         if (this.recognizer && this.audioContext) {
          
-            reusableBuffer.copyToChannel(audioData, 0);
-            this.recognizer.acceptWaveform(reusableBuffer);
+
+      
+
+
+
+          if (this.recognizer && this.audioContext) {
+            const audioBuffer = this.audioContext.createBuffer(1, audioData.length, this.audioContext.sampleRate);
+
+            audioBuffer.copyToChannel(audioData, 0);
+      
+            this.recognizer.acceptWaveform(audioBuffer);
+
+
           }
+
         } catch (error) {
-          console.error("[WORKER ERRO] Falha ao processar pacote:", error);
+
+          console.error("🔴 [WORKER ERRO] Falha ao processar pacote:", error);
+
         }
+
       };
 
-      const muteNode = this.audioContext.createGain();
-      muteNode.gain.value = 0.00001;
 
-      this.source.connect(micAmplifier);
-      micAmplifier.connect(this.processor);
-      this.processor.connect(muteNode);
-      muteNode.connect(this.audioContext.destination);
-
-      this.isListening = true;
  
 
+
+      this.isListening = true;
+
+      console.log(`🚀 [ARQUITETURA] AudioWorklet ativado! O Angular está 100% livre.`);
+
+
+
     } catch (error) {
-      console.error("[ERRO MIC] Falha ao aceder ao microfone:", error);
+
+      console.error("🔴 [ERRO MIC] Falha ao aceder ao microfone:", error);
+
     }
+
   }
+
+
 
   stopMic() {
     if (this.isListening) {
@@ -181,6 +251,7 @@ export class SpeechRecognitionService {
           index
         }));
 
+      
       this.validationResultSubject.next([...this.currentPhraseWords]);
     } else {
       this.currentPhraseWords = [];
@@ -197,6 +268,9 @@ export class SpeechRecognitionService {
 
       const cleanWord = wordObj.cleanText;
 
+      if (wordObj.status === 'correct') {
+      return wordObj;
+    }
       console.log(spokenText);
       if (spokenText.includes(cleanWord)) {
         return { ...wordObj, status: 'correct' };

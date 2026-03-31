@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  voskModelUrl: 'https://huggingface.co/rhasspy/vosk-models/resolve/main/en/vosk-model-en-us-0.22-lgraph.zip'
+  voskModelUrl: 'https://huggingface.co/ambind/vosk-model-small-en-us-0.15/resolve/main/vosk-model-small-en-us-0.15_c_.zip'
 };

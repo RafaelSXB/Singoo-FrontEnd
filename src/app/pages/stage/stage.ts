@@ -119,13 +119,14 @@ export class Stage implements OnInit, OnDestroy {
 
           if (newIndex !== -1) {
             this.speechRecognitionService.setPhrase(this.songDetails.lyrics[newIndex].englishPhrase);
+            console.log('Frase atual:', this.songDetails.lyrics[newIndex].englishPhrase);
           } else {
             this.speechRecognitionService.setPhrase('');
           }
           this.cdr.markForCheck();
         }
       }
-    }, 600);
+    }, 300);
   }
 
   stopLyricsSync(): void {
