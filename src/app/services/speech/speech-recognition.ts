@@ -104,13 +104,13 @@ export class SpeechRecognitionService {
 
         audio: {
 
-          echoCancellation: false,
+          echoCancellation: true,      // Reduz eco/reverb
 
-          noiseSuppression: false,
+          noiseSuppression: true,      // Ativa supressão de ruído do navegador
 
-          autoGainControl: false,
+          autoGainControl: false,      // Desativado pois temos ganho adaptativo
 
-          channelCount: 1
+          channelCount: 1            // Minimiza latência para melhor detecção
 
         }
 
@@ -126,11 +126,6 @@ export class SpeechRecognitionService {
       micAmplifier.gain.value = 1.0;
 
 
-      // ==========================================
-
-      // A NOVA ARQUITETURA: AUDIO WORKLET
-
-      // ==========================================
 
 
       await this.audioContext.audioWorklet.addModule('/assets/audio-processor.js');
@@ -161,22 +156,17 @@ export class SpeechRecognitionService {
 
         try {
 
+          // Novo formato com Voice Activity Detection
           const audioData = event.data;
 
-
+          // Debug: mostra quando detecta voz
          
-
-      
-
-
-
           if (this.recognizer && this.audioContext) {
             const audioBuffer = this.audioContext.createBuffer(1, audioData.length, this.audioContext.sampleRate);
 
             audioBuffer.copyToChannel(audioData, 0);
       
             this.recognizer.acceptWaveform(audioBuffer);
-
 
           }
 
