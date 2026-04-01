@@ -31,7 +31,7 @@ export class SpeechRecognitionService {
   private audioContext: AudioContext | null = null;
   private mediaStream: MediaStream | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
-
+  private currentWord: string = '';
 
   private processor: AudioWorkletNode | null = null;
 
@@ -64,7 +64,6 @@ export class SpeechRecognitionService {
 
     try {
 
-      console.log("🎙️ [SISTEMA] A preparar a placa de som...");
 
 
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -73,7 +72,7 @@ export class SpeechRecognitionService {
       this.audioContext = new AudioContextClass({ sampleRate: 16000 });
 
       this.recognizer = new this.voskModel.KaldiRecognizer(16000, grammarJson);
-      console.log('Reconhecedor pronto para escutar apenas as palavras:', grammarList);
+
 
 
 
@@ -81,12 +80,13 @@ export class SpeechRecognitionService {
 
 
       this.recognizer.on("partialresult", (message: any) => {
+    
+      const cleanPartial = message.result.partial.trim().toLowerCase();
 
-        if (message.result && message.result.partial) {
-
-          this.validatePhrase(message.result.partial);
-
-        }
+if (cleanPartial !== "" && cleanPartial !== this.currentWord) {
+    this.validatePhrase(cleanPartial);
+    this.currentWord = cleanPartial;
+}
 
       });
 
@@ -104,13 +104,13 @@ export class SpeechRecognitionService {
 
         audio: {
 
-          echoCancellation: true,      // Reduz eco/reverb
+          echoCancellation: true,    
 
-          noiseSuppression: true,      // Ativa supressão de ruído do navegador
+          noiseSuppression: true,    
 
-          autoGainControl: false,      // Desativado pois temos ganho adaptativo
+          autoGainControl: false,     
 
-          channelCount: 1            // Minimiza latência para melhor detecção
+          channelCount: 1            
 
         }
 
@@ -123,7 +123,7 @@ export class SpeechRecognitionService {
 
       const micAmplifier = this.audioContext.createGain();
 
-      micAmplifier.gain.value = 1.0;
+      micAmplifier.gain.value = 1.5;
 
 
 
@@ -156,11 +156,11 @@ export class SpeechRecognitionService {
 
         try {
 
-          // Novo formato com Voice Activity Detection
+    
           const audioData = event.data;
 
-          // Debug: mostra quando detecta voz
-         
+
+        
           if (this.recognizer && this.audioContext) {
             const audioBuffer = this.audioContext.createBuffer(1, audioData.length, this.audioContext.sampleRate);
 
@@ -250,33 +250,22 @@ export class SpeechRecognitionService {
   }
 
   private validatePhrase(transcript: string) {
-    if (!this.phraseToValidate || this.currentPhraseWords.length === 0) return;
+  const spokenText = transcript.toLowerCase().trim();
+  if (!spokenText) return;
 
-    const spokenText = transcript.toLowerCase();
 
-    this.currentPhraseWords = this.currentPhraseWords.map((wordObj) => {
+  const wordIndex = this.currentPhraseWords.findIndex(wordObj => 
+    wordObj.status !== 'correct' && 
+    (spokenText.includes(wordObj.cleanText.toLowerCase()) || 
+     (wordObj.cleanText.length > 4 && spokenText.includes(wordObj.cleanText.substring(0, 4))))
+  );
 
-      const cleanWord = wordObj.cleanText;
-
-      if (wordObj.status === 'correct') {
-      return wordObj;
-    }
-      console.log(spokenText);
-      if (spokenText.includes(cleanWord)) {
-        return { ...wordObj, status: 'correct' };
-      }
-
-      if (cleanWord.length > 4 && spokenText.includes(cleanWord.substring(0, 4))) {
-        return { ...wordObj, status: 'correct' };
-      }
-
-      if (spokenText.trim().length > 0) {
-        return { ...wordObj, status: 'pending' };
-      }
-
-      return wordObj;
-    });
+  if (wordIndex !== -1) {
+  
+    this.currentPhraseWords[wordIndex].status = 'correct';
+    
 
     this.validationResultSubject.next([...this.currentPhraseWords]);
+   
   }
-}
+}}
