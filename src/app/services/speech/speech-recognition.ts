@@ -123,7 +123,7 @@ if (cleanPartial !== "" && cleanPartial !== this.currentWord) {
 
       const micAmplifier = this.audioContext.createGain();
 
-      micAmplifier.gain.value = 1.5;
+      micAmplifier.gain.value = 3.0;
 
 
 

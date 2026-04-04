@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, OnDestroy, inject, Signal, signal } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { SongServices } from '../../services/song/song-services';
@@ -6,6 +6,7 @@ import { SongDetailsDto } from '../../services/song/song-models';
 import { YouTubePlayer } from '@angular/youtube-player';
 import { SpeechRecognitionService, ValidatedWord } from '../../services/speech/speech-recognition';
 import { Subscription } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-stage',
@@ -18,18 +19,19 @@ export class Stage implements OnInit, OnDestroy {
   @ViewChild(YouTubePlayer) player!: YouTubePlayer;
 
   songId: string | null = null;
-  songDetails: SongDetailsDto | null = null;
+  songDetails: Signal<SongDetailsDto> = signal({ id: '', youtubeVideoId: '', lyrics: [] });
   isLoading = true;
   isVoskLoading = true; 
   playerState: number = 1;
 
-  currentLyricIndex: number = -1;
+  currentLyricIndex = signal(-1);
   syncInterval: any;
-  currentTimeMs: number = 0;
+  currentTimeMs = signal(0);
+
   isPlaying: boolean = false;
   nameSong: string = '';
   playerOrigin = window.location.origin;
-  validatedWordsForActiveBlock: ValidatedWord[] = [];
+  validatedWordsForActiveBlock!: Signal<ValidatedWord[]>;
   lyricMusic: string[] = [];
   
   private speechSubscription!: Subscription;
@@ -41,7 +43,9 @@ export class Stage implements OnInit, OnDestroy {
     private songService: SongServices,
     private location: Location,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) { 
+    this.validatedWordsForActiveBlock = toSignal(this.speechRecognitionService.validatedWords$, { initialValue: [] });
+  }
 
   ngOnInit(): void {
     if (!document.getElementById('youtube-iframe-api')) {
@@ -51,10 +55,9 @@ export class Stage implements OnInit, OnDestroy {
       document.body.appendChild(tag);
     }
 
-    this.speechSubscription = this.speechRecognitionService.validatedWords$.subscribe((words) => {
-      this.validatedWordsForActiveBlock = words;
-      this.cdr.markForCheck();
-    });
+
+
+ 
 
     this.modelSubscription = this.speechRecognitionService.isModelLoading$.subscribe((loading) => {
       this.isVoskLoading = loading;
@@ -67,7 +70,7 @@ export class Stage implements OnInit, OnDestroy {
     if (this.songId) {
       this.songService.getSongById(this.songId).subscribe({
         next: (data) => {
-          this.songDetails = data;
+          this.songDetails = signal(data);
           this.isLoading = false;
           this.cdr.markForCheck();
           data.lyrics.forEach(lyric => {
@@ -107,23 +110,24 @@ export class Stage implements OnInit, OnDestroy {
 
   startLyricsSync(): void {
     this.syncInterval = setInterval(() => {
-      if (this.player && this.songDetails && this.songDetails.lyrics) {
-        this.currentTimeMs = this.player.getCurrentTime() * 1000;
+      if (this.player && this.songDetails && this.songDetails().lyrics) {
+         this.currentTimeMs.update(() => this.player.getCurrentTime() * 1000);
+       
 
-        const newIndex = this.songDetails.lyrics.findIndex(
-          lyric => this.currentTimeMs >= lyric.startTimeMs && this.currentTimeMs <= lyric.endTimeMs
+        const newIndex = this.songDetails().lyrics.findIndex(
+          lyric => this.currentTimeMs() >= lyric.startTimeMs && this.currentTimeMs() <= lyric.endTimeMs
         );
 
-        if (newIndex !== this.currentLyricIndex) {
-          this.currentLyricIndex = newIndex;
+        if (newIndex !== this.currentLyricIndex()) {
+          this.currentLyricIndex.update(() => newIndex);
 
           if (newIndex !== -1) {
-            this.speechRecognitionService.setPhrase(this.songDetails.lyrics[newIndex].englishPhrase);
-            console.log('Frase atual:', this.songDetails.lyrics[newIndex].englishPhrase);
+            this.speechRecognitionService.setPhrase(this.songDetails().lyrics[newIndex].englishPhrase);
+            console.log('Frase atual:', this.songDetails().lyrics[newIndex].englishPhrase);
           } else {
             this.speechRecognitionService.setPhrase('');
           }
-          this.cdr.markForCheck();
+   
         }
       }
     }, 300);
