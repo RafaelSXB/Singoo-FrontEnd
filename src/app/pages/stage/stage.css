@@ -98,11 +98,52 @@
 
 .now-playing-text {
   font-size: 1.2rem;
-  color: var(--text-muted);
+  color: var(--text-light);
   text-transform: uppercase;
   letter-spacing: 1px;
+
+   text-shadow: 
+    0 0 5px var(--primary-green),
+    0 0 10px var(--primary-green),
+    0 0 20px rgba(0, 255, 150, 0.5);
+
+}
+.now-playing-points {
+  position: absolute;
+  right: 5%;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--text-light);
+
+  text-shadow: 
+    0 0 5px var(--primary-green),
+    0 0 10px var(--primary-green),
+    0 0 20px rgba(0, 255, 150, 0.5);
+
+
+  animation: pulseGlow 2s infinite;
 }
 
+@keyframes pulseGlow {
+  0% {
+    text-shadow: 
+      0 0 5px var(--primary-green),
+      0 0 10px var(--primary-green);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 
+      0 0 10px var(--primary-green),
+      0 0 20px var(--primary-green);
+    transform: scale(1.02);
+  }
+  100% {
+    text-shadow: 
+      0 0 5px var(--primary-green),
+      0 0 10px var(--primary-green);
+    transform: scale(1);
+  }
+}
 .lyrics-section {
   flex: 1;
   display: flex;

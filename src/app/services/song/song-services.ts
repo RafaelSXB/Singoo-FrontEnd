@@ -55,4 +55,15 @@ export class SongServices {
     return of(songInfo).pipe(delay(600));
   }
 
+    requestSong(songName: string, artistName: string): Observable<any> {
+    const payload = { songName, artistName };
+    console.log(`[BACKEND MOCK POST] /api/v1/requests`, payload);
+    
+    const mockResponse = {
+      message: "Pedido recebido com sucesso!",
+      pointsAwarded: 10
+    };
+
+    return of(mockResponse).pipe(delay(500));
+  }
 }

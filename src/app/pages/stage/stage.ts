@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, OnDestroy, inject, Signal, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, OnDestroy, inject, Signal, signal, effect } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { SongServices } from '../../services/song/song-services';
@@ -33,6 +33,14 @@ export class Stage implements OnInit, OnDestroy {
   playerOrigin = window.location.origin;
   validatedWordsForActiveBlock!: Signal<ValidatedWord[]>;
   lyricMusic: string[] = [];
+  totalWordsInSong = signal(0);
+  totalPoints = signal(0);
+  points = signal(0);
+  totalCorrect: number = 0;
+  finalAccuracy = signal(0);
+  showResults = signal(false);
+  blockCorrectCounts: Map<number, number> = new Map();
+
   
   private speechSubscription!: Subscription;
   private modelSubscription!: Subscription;
@@ -45,7 +53,35 @@ export class Stage implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) { 
     this.validatedWordsForActiveBlock = toSignal(this.speechRecognitionService.validatedWords$, { initialValue: [] });
+
+    effect(() => {
+      const words = this.validatedWordsForActiveBlock();
+      const currentIndex = this.currentLyricIndex();
+  
+if (!this.totalCorrect) this.totalCorrect = 0;
+
+if (currentIndex !== -1 && words.length > 0) {
+  const prevCount = this.blockCorrectCounts.get(currentIndex) || 0;
+
+
+  let newCount = 0;
+  for (let i = 0; i < words.length; i++) {
+    if (words[i].status === 'correct') newCount++;
   }
+
+
+  const diff = newCount - prevCount;
+
+ 
+  this.blockCorrectCounts.set(currentIndex, newCount);
+  this.totalCorrect += diff;
+
+ 
+  this.points.set(this.totalCorrect * 10);
+}
+  });
+  }
+  
 
   ngOnInit(): void {
     if (!document.getElementById('youtube-iframe-api')) {
@@ -79,6 +115,7 @@ export class Stage implements OnInit, OnDestroy {
               if (cleanedWord.length > 0) {
                 this.lyricMusic.push(cleanedWord);
               }
+              this.totalWordsInSong.set(this.lyricMusic.length);
             });
           });
         },
@@ -90,6 +127,7 @@ export class Stage implements OnInit, OnDestroy {
     }
   }
 
+
   onPlayerStateChange(event: any): void {
     this.isPlaying = (event.data === 1);
     this.playerState = event.data as number;
@@ -98,6 +136,10 @@ export class Stage implements OnInit, OnDestroy {
       this.startLyricsSync();
     } else { 
       this.stopLyricsSync();
+    }
+
+    if (event.data === 0) {
+      this.finishSongAndShowResults();
     }
   }
 
@@ -153,6 +195,25 @@ export class Stage implements OnInit, OnDestroy {
       this.speechRecognitionService.startMic(this.lyricMusic);
       this.player.playVideo();
     }
+  }
+
+  finishSongAndShowResults(): void {
+    this.speechRecognitionService.stopMic();
+    if (this.player) {
+      this.player.pauseVideo();
+    }
+    
+    let totalCorrectWords = 0;
+    this.blockCorrectCounts.forEach(count => totalCorrectWords += count);
+    
+    const safeTotalWords = this.totalWordsInSong() > 0 ? this.totalWordsInSong() : 1;
+    
+   
+    this.finalAccuracy.set((totalCorrectWords / safeTotalWords) * 100);
+    this.totalPoints.set(totalCorrectWords * 10); 
+    console.log('acabo video');
+
+    this.showResults.set(true);
   }
 
   goBack(): void {
