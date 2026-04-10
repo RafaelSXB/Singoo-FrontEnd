@@ -1,0 +1,64 @@
+<div class="results-wrapper">
+  
+  <div class="results-header">
+ 
+    <div class="logo">
+      <img src="assets/images/singoo-logo.svg" alt="Singoo" >
+    </div>
+     <div class="logo-glow"></div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p class="loading-text">{{ statusMessage }}</p>
+    </div>
+  } @else if (rankingData) {
+    <h1 class="congrats-title">CONGRATULATIONS!</h1>
+
+    <div class="score-neon-box" [ngClass]="{'border-green': finalAccuracy >= 50, 'border-red': finalAccuracy < 50}">
+      <h2 class="accuracy-text" [ngClass]="{'text-green': finalAccuracy >= 50, 'text-red': finalAccuracy < 50}">
+        {{ finalAccuracy | number:'1.0-0' }}% Accuracy
+      </h2>
+      <p class="points-text">+{{ pointsEarned }} Singoo Points</p>
+    </div>
+
+    <div class="ranking-section">
+      <h3 class="ranking-title">Global Song Ranking</h3>
+
+      <div class="ranking-table">
+        <div class="ranking-thead">
+          <span>Rank</span>
+          <span>User</span>
+          <span>Points</span> 
+        </div>
+        
+        @for (item of rankingData.topRanking; track item.position) {
+          <div class="ranking-row">
+            <span class="col-rank">{{ item.position }}º</span>
+            <span class="col-user">
+              <div class="avatar-circle">
+                  <span>{{ item.userName.charAt(0) }}</span>
+              </div>
+              {{ item.userName }}
+            </span>
+            <span class="col-acc">{{ item.allPoints }}</span>
+          </div>
+        }
+      </div>
+
+      <p class="your-rank-footer">
+        Your Rank: {{ rankingData.userCurrentRank }}th 
+        <span class="highlight-points" [ngClass]="{'text-green': finalAccuracy >= 50, 'text-red': finalAccuracy < 50}">
+          {{ rankingData.userAllPoints }} Total Pts
+        </span>
+      </p>
+ 
+      <button class="btn-primary" (click)="onRevise.emit()">REVISE ERRORS</button>
+      <button class="btn-secondary" (click)="onBack.emit()">BACK TO CATALOG</button>
+
+    </div>
+
+   
+  }
+</div>

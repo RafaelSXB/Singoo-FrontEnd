@@ -7,11 +7,12 @@ import { YouTubePlayer } from '@angular/youtube-player';
 import { SpeechRecognitionService, ValidatedWord } from '../../services/speech/speech-recognition';
 import { Subscription } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { StageResult } from "../stage-result/stage-result";
 
 @Component({
   selector: 'app-stage',
   standalone: true,
-  imports: [CommonModule, YouTubePlayer],
+  imports: [CommonModule, YouTubePlayer, StageResult],
   templateUrl: './stage.html',
   styleUrls: ['./stage.css']
 })
@@ -68,15 +69,10 @@ if (currentIndex !== -1 && words.length > 0) {
   for (let i = 0; i < words.length; i++) {
     if (words[i].status === 'correct') newCount++;
   }
-
-
   const diff = newCount - prevCount;
-
  
   this.blockCorrectCounts.set(currentIndex, newCount);
   this.totalCorrect += diff;
-
- 
   this.points.set(this.totalCorrect * 10);
 }
   });
@@ -191,6 +187,7 @@ if (currentIndex !== -1 && words.length > 0) {
     if (this.isPlaying) {
       this.player.pauseVideo();
       this.speechRecognitionService.stopMic();
+      this.finishSongAndShowResults();
     } else {
       this.speechRecognitionService.startMic(this.lyricMusic);
       this.player.playVideo();

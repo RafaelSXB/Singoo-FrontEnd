@@ -1,92 +1,92 @@
-<div class="stage-container">
-  <header class="stage-header">
-    <button class="back-btn" (click)="goBack()">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-    </button>
-    <img src="assets/images/singoo-logo.svg" alt="Singoo Logo" class="logo">
-    <div class="logo-glow"></div>
-    <div class="spacer"></div>
-  </header>
+@if (showResults()) {
+  <app-stage-result 
+    [songId]="songId"
+    [finalAccuracy]="finalAccuracy()"
+    [pointsEarned]="totalPoints()"
+    (onBack)="goBack()">
+  </app-stage-result>
+} 
+@else {
+  <div class="stage-container">
+    <header class="stage-header">
+      <button class="back-btn" (click)="goBack()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
+      <img src="assets/images/singoo-logo.svg" alt="Singoo Logo" class="logo">
+      <div class="logo-glow"></div>
+      <div class="spacer"></div>
+    </header>
 
-  @if (isLoading) {
-  <div class="loading-state">A preparar o palco...</div>
-  } @else if (songDetails()) {
+    @if (isLoading) {
+      <div class="loading-state">A preparar o palco...</div>
+    } @else if (songDetails()) {
+      <section class="video-section">
+        <youtube-player [videoId]="songDetails().youtubeVideoId" width="100%" height="100%" [playerVars]="{ 
+          controls: 0, 
+          disablekb: 1, 
+          fs: 1,          modestbranding: 1, 
+          rel: 0, 
+          playsinline: 1,   origin: playerOrigin
+        }" (stateChange)="onPlayerStateChange($event)">
+        </youtube-player>
 
-  <section class="video-section">
-
-    <youtube-player [videoId]="songDetails().youtubeVideoId" width="100%" height="100%" [playerVars]="{ 
-      controls: 0, 
-      disablekb: 1, 
-      fs: 1,              modestbranding: 1, 
-      rel: 0, 
-      playsinline: 1,     origin: playerOrigin
-    }" (stateChange)="onPlayerStateChange($event)">
-    </youtube-player>
-
-<div class="btn-container" (click)="togglePlayPause()">
-    <svg  class="btn-youtube" [ngClass]="{'play': playerState === 1, 'pause': playerState === 2}" height="100%" version="1.1" viewBox="0 0 68 48" focusable="false" aria-hidden="true" (click)="togglePlayPause()" >
-      <path
-        d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z"
-        fill="#f00"></path>
-      <path d="M 45,24 27,14 27,34" fill="#fff"></path>
-    </svg>
-</div>
-
- 
-  
-
-  </section>
-
-  <div class="now-playing-bar">
-    <span class="now-playing-text"> {{ nameSong }}</span>
-    <span class="now-playing-points">{{ points() }}</span>
-  </div>
-
-  <section class="lyrics-section">
-
-
-    <div class="sound-wave-icon" [class.is-playing]="currentLyricIndex() !== -1">
-      <svg width="64" height="40" viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="16" width="3" height="8" rx="1.5" class="wave-bar" />
-        <rect x="6" y="13" width="3" height="14" rx="1.5" class="wave-bar" />
-        <rect x="12" y="10" width="3" height="20" rx="1.5" class="wave-bar" />
-        <rect x="18" y="7" width="3" height="26" rx="1.5" class="wave-bar" />
-        <rect x="24" y="4" width="3" height="32" rx="1.5" class="wave-bar" />
-        <rect x="30" y="0" width="3" height="40" rx="1.5" class="wave-bar" />
-        <rect x="36" y="4" width="3" height="32" rx="1.5" class="wave-bar" />
-        <rect x="42" y="7" width="3" height="26" rx="1.5" class="wave-bar" />
-        <rect x="48" y="10" width="3" height="20" rx="1.5" class="wave-bar" />
-        <rect x="54" y="13" width="3" height="14" rx="1.5" class="wave-bar" />
-        <rect x="60" y="16" width="3" height="8" rx="1.5" class="wave-bar" />
-      </svg>
-    </div>
-   @for (lyric of songDetails().lyrics; track lyric.startTimeMs; let i = $index) {
-        <div class="lyric-block" 
-             [class.active]="currentTimeMs() >= lyric.startTimeMs && currentTimeMs() <= lyric.endTimeMs"
-             [class.passed]="currentTimeMs() > lyric.endTimeMs"
-             [class.upcoming]="currentTimeMs() < lyric.startTimeMs">
-             
-          @if (currentTimeMs() >= lyric.startTimeMs && currentTimeMs() <= lyric.endTimeMs) {
-            <h2 class="lyric-en">
-              @for (word of validatedWordsForActiveBlock(); track word.index) {
-                <span class="word-span" [class]="'word-' + word.status">
-                  {{ word.text }}
-                </span>
-              }
-            </h2>
-          } @else {
-            <h2 class="lyric-en simple-phrase">{{ lyric.englishPhrase }}</h2>
-          }
-
-          <p class="lyric-pt">{{ lyric.portugueseTranslation }}</p>
+        <div class="btn-container" (click)="togglePlayPause()">
+          <svg class="btn-youtube" [ngClass]="{'play': playerState === 1, 'pause': playerState === 2}" height="100%" version="1.1" viewBox="0 0 68 48" focusable="false" aria-hidden="true">
+            <path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="#f00"></path>
+            <path d="M 45,24 27,14 27,34" fill="#fff"></path>
+          </svg>
         </div>
-      }
+      </section>
 
-  </section>
+      <div class="now-playing-bar">
+        <span class="now-playing-text"> {{ nameSong }}</span>
+        <span class="now-playing-points">{{ points() }}</span> 
+      </div>
 
-  } @else {
-  <div class="error-state">Música não encontrada.</div>
-  }
-</div>
+      <section class="lyrics-section">
+        <div class="sound-wave-icon" [class.is-playing]="currentLyricIndex() !== -1">
+          <svg width="64" height="40" viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="16" width="3" height="8" rx="1.5" class="wave-bar" />
+            <rect x="6" y="13" width="3" height="14" rx="1.5" class="wave-bar" />
+            <rect x="12" y="10" width="3" height="20" rx="1.5" class="wave-bar" />
+            <rect x="18" y="7" width="3" height="26" rx="1.5" class="wave-bar" />
+            <rect x="24" y="4" width="3" height="32" rx="1.5" class="wave-bar" />
+            <rect x="30" y="0" width="3" height="40" rx="1.5" class="wave-bar" />
+            <rect x="36" y="4" width="3" height="32" rx="1.5" class="wave-bar" />
+            <rect x="42" y="7" width="3" height="26" rx="1.5" class="wave-bar" />
+            <rect x="48" y="10" width="3" height="20" rx="1.5" class="wave-bar" />
+            <rect x="54" y="13" width="3" height="14" rx="1.5" class="wave-bar" />
+            <rect x="60" y="16" width="3" height="8" rx="1.5" class="wave-bar" />
+          </svg>
+        </div>
+        
+        @for (lyric of songDetails().lyrics; track lyric.startTimeMs; let i = $index) {
+          <div class="lyric-block" 
+               [class.active]="currentTimeMs() >= lyric.startTimeMs && currentTimeMs() <= lyric.endTimeMs"
+               [class.passed]="currentTimeMs() > lyric.endTimeMs"
+               [class.upcoming]="currentTimeMs() < lyric.startTimeMs">
+               
+            @if (currentTimeMs() >= lyric.startTimeMs && currentTimeMs() <= lyric.endTimeMs) {
+              <h2 class="lyric-en">
+                @for (word of validatedWordsForActiveBlock(); track word.index) {
+                  <span class="word-span" [class]="'word-' + word.status">
+                    {{ word.text }}
+                  </span>
+                }
+              </h2>
+            } @else {
+              <h2 class="lyric-en simple-phrase">{{ lyric.englishPhrase }}</h2>
+            }
+
+            <p class="lyric-pt">{{ lyric.portugueseTranslation }}</p>
+          </div>
+        }
+      </section>
+
+    } @else {
+      <div class="error-state">Música não encontrada.</div>
+    }
+  </div>
+}
