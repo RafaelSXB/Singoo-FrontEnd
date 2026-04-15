@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Training } from '../../services/training/training';
 import { switchMap } from 'rxjs/operators';
 import { SongRankingResponse } from '../../services/training/traning-models';
+import { Loading } from "../loading/loading";
 
 @Component({
   selector: 'app-stage-result',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, Loading],
   templateUrl: './stage-result.html',
   styleUrls: ['./stage-result.css']
 })
@@ -19,7 +20,7 @@ export class StageResult implements OnInit {
 
 
   @Output() onBack = new EventEmitter<void>();
-  @Output() onRevise = new EventEmitter<void>();
+  @Output() onRetry = new EventEmitter<void>();
 
   private trainingService = inject(Training);
   private cdr = inject(ChangeDetectorRef);
@@ -30,6 +31,7 @@ export class StageResult implements OnInit {
   statusMessage: string = "A guardar sessão...";
 
   ngOnInit(): void {
+   
     if (this.songId) {
       this.trainingService.initTrainingMock();
       this.processTrainingData(this.songId);
@@ -42,7 +44,7 @@ export class StageResult implements OnInit {
 
   private processTrainingData(id: string): void {
     this.isLoading = true;
-    this.statusMessage = "A enviar pontuação para os servidores...";
+    this.statusMessage = "Enviando resultados e atualizando ranking...";
    this.trainingService.getSongRanking(id).subscribe({
         next: (ranking) => {
          console.log("Ranking inicial:", ranking);
@@ -60,6 +62,7 @@ export class StageResult implements OnInit {
       .pipe(
         switchMap(() => {
           this.statusMessage = "A atualizar o Ranking Global...";
+          
           return this.trainingService.getSongRanking(id);
         })
       )

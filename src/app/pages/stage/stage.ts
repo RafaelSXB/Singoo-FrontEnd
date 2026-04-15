@@ -8,11 +8,13 @@ import { SpeechRecognitionService, ValidatedWord } from '../../services/speech/s
 import { Subscription } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { StageResult } from "../stage-result/stage-result";
+import { Router } from '@angular/router';
+import { Loading } from "../loading/loading";
 
 @Component({
   selector: 'app-stage',
   standalone: true,
-  imports: [CommonModule, YouTubePlayer, StageResult],
+  imports: [CommonModule, YouTubePlayer, StageResult, Loading],
   templateUrl: './stage.html',
   styleUrls: ['./stage.css']
 })
@@ -24,6 +26,7 @@ export class Stage implements OnInit, OnDestroy {
   isLoading = true;
   isVoskLoading = true; 
   playerState: number = 1;
+  statusMessage: string = "A preparar o palco...";
 
   currentLyricIndex = signal(-1);
   syncInterval: any;
@@ -51,6 +54,7 @@ export class Stage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private songService: SongServices,
     private location: Location,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) { 
     this.validatedWordsForActiveBlock = toSignal(this.speechRecognitionService.validatedWords$, { initialValue: [] });
@@ -80,6 +84,7 @@ if (currentIndex !== -1 && words.length > 0) {
   
 
   ngOnInit(): void {
+
     if (!document.getElementById('youtube-iframe-api')) {
       const tag = document.createElement('script');
       tag.id = 'youtube-iframe-api';
@@ -90,12 +95,21 @@ if (currentIndex !== -1 && words.length > 0) {
 
 
  
-
+    this.statusMessage = "A carregar o modelo de reconhecimento de voz...";
     this.modelSubscription = this.speechRecognitionService.isModelLoading$.subscribe((loading) => {
       this.isVoskLoading = loading;
+      console.log('Model loading state:', loading);
       this.cdr.markForCheck();
     });
-
+    this.speechRecognitionService.verifyModelReady().then(() => {
+      console.log('Modelo Vosk pronto para uso.');
+      this.isVoskLoading = false;
+      this.cdr.markForCheck();
+    }).catch(err => {
+      console.error('Erro ao verificar modelo Vosk:', err);
+    });
+if (this.speechRecognitionService.isModelLoading$)
+  this.statusMessage = "A carregar a música...";
     this.songId = this.route.snapshot.paramMap.get('id');
     this.nameSong = this.route.snapshot.paramMap.get('nameSong') || '';
 
@@ -127,7 +141,7 @@ if (currentIndex !== -1 && words.length > 0) {
   onPlayerStateChange(event: any): void {
     this.isPlaying = (event.data === 1);
     this.playerState = event.data as number;
-
+    console.log('Player state changed:', this.playerState, 'Is playing:', this.isPlaying);
     if (event.data === 1) { 
       this.startLyricsSync();
     } else { 
@@ -178,6 +192,9 @@ if (currentIndex !== -1 && words.length > 0) {
   }
 
   togglePlayPause(): void {
+    console.log('Toggle play/pause clicked. Current state:', this.isPlaying ? 'Playing' : 'Paused');
+    console.log('Player instance:', this.player);
+    console.log(this.isVoskLoading);
     if (!this.player) return;
     
     if (this.isVoskLoading) {
@@ -214,14 +231,23 @@ if (currentIndex !== -1 && words.length > 0) {
   }
 
   goBack(): void {
-    this.location.back();
+    
+    this.router.navigate(['/catalog']);
+    
+  }
+
+  goRetry(): void {
+
+  
+  this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+    this.router.navigate(['/stage', this.songId, this.nameSong]);
+  });
+
   }
 
   ngOnDestroy(): void {
     this.stopLyricsSync();
-    if (this.player) {
-      this.player.pauseVideo();
-    }
+    console.log('Stage component destroyed, resources cleaned up.');
     this.speechRecognitionService.stopMic();
     
     if (this.speechSubscription) {
@@ -229,6 +255,7 @@ if (currentIndex !== -1 && words.length > 0) {
     }
     if (this.modelSubscription) {
       this.modelSubscription.unsubscribe();
+      console.log('Model subscription unsubscribed.');
     }
   }
 }

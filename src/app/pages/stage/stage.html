@@ -3,7 +3,8 @@
     [songId]="songId"
     [finalAccuracy]="finalAccuracy()"
     [pointsEarned]="totalPoints()"
-    (onBack)="goBack()">
+    (onBack)="goBack()"
+    (onRetry)="goRetry()">
   </app-stage-result>
 } 
 @else {
@@ -20,7 +21,7 @@
     </header>
 
     @if (isLoading) {
-      <div class="loading-state">A preparar o palco...</div>
+      <app-loading [statusMessage]="statusMessage"></app-loading>
     } @else if (songDetails()) {
       <section class="video-section">
         <youtube-player [videoId]="songDetails().youtubeVideoId" width="100%" height="100%" [playerVars]="{ 

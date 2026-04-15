@@ -21,25 +21,26 @@
 }
 
 .logo {
-align-self: center;
-   width: 8vh;
+  align-self: center;
+  width: 10vh;
   max-width: 130px;
   opacity: 1;
-
 }
+
 .logo-glow {
   position: absolute;
-  top: 10%;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-
-  width:  30px;
-  height: 50px;
+  width:  10vw;
+  height: 10vh;
   background-color: var(--primary-green);
   border-radius: 50%;
   filter: blur(5vh);
+  opacity: 1;
   z-index: 11;
 }
+
 
 .title {
   text-align: center;

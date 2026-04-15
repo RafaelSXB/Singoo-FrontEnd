@@ -44,6 +44,7 @@ export class SpeechRecognitionService {
 
   private async initVoskModel() {
     this.modelLoadingSubject.next(true);
+    console.log('Iniciando carregamento do modelo Vosk...');
     try {
 
       const modelUrl = environment.voskModelUrl;
@@ -56,6 +57,14 @@ export class SpeechRecognitionService {
       this.modelLoadingSubject.next(false);
     }
   }
+
+  async verifyModelReady(): Promise<void> {
+    if (this.modelReady) {
+      return;
+    }
+    await this.initVoskModel();
+  }
+
   async startMic(lyricMusic: string[]) {
 
     if (!this.modelReady || this.isListening) return;

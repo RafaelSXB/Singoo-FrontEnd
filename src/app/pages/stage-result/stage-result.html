@@ -9,12 +9,8 @@
   </div>
 
   @if (isLoading) {
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p class="loading-text">{{ statusMessage }}</p>
-    </div>
+    <app-loading [statusMessage]="statusMessage"></app-loading>
   } @else if (rankingData) {
-    <h1 class="congrats-title">CONGRATULATIONS!</h1>
 
     <div class="score-neon-box" [ngClass]="{'border-green': finalAccuracy >= 50, 'border-red': finalAccuracy < 50}">
       <h2 class="accuracy-text" [ngClass]="{'text-green': finalAccuracy >= 50, 'text-red': finalAccuracy < 50}">
@@ -54,7 +50,7 @@
         </span>
       </p>
  
-      <button class="btn-primary" (click)="onRevise.emit()">REVISE ERRORS</button>
+      <button class="btn-primary" (click)="onRetry.emit()">RETRY MUSIC</button>
       <button class="btn-secondary" (click)="onBack.emit()">BACK TO CATALOG</button>
 
     </div>
