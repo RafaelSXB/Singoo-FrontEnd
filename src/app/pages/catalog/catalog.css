@@ -197,9 +197,35 @@
 }
 
 
-.loading-state, .empty-state {
+.loading-state {
   text-align: center;
   color: #888;
   margin-top: 40px;
   font-size: 0.9rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: #888;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-request {
+  background-color: transparent;
+  color: var(--primary-green, #4cd964);
+  border: 1px solid var(--primary-green, #4cd964);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-request:active {
+  background-color: var(--primary-green, #4cd964);
+  color: #0f1115;
 }

@@ -5,12 +5,12 @@ import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { SongServices } from '../../services/song/song-services';
 import { SongListDto } from '../../services/song/song-models';
-
+import { RequestSheet } from './request-sheet/request-sheet';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RequestSheet],
   templateUrl: './catalog.html',
   styleUrls: ['./catalog.css']
 })
@@ -19,7 +19,8 @@ export class Catalog implements OnInit {
   songs: SongListDto[] = [];
   isLoading: boolean = false;
   nameSong: string = '';
-
+  isBottomSheetOpen = false;
+  currentSearchTerm = '';
 
   constructor(private songServices: SongServices, private router: Router, private cdr: ChangeDetectorRef) {
   
@@ -34,7 +35,9 @@ export class Catalog implements OnInit {
       debounceTime(500), 
       distinctUntilChanged() 
     ).subscribe(term => {
+      this.currentSearchTerm = term || '';
       this.loadSongs(term || '');
+      
     });
   }
 
@@ -63,5 +66,14 @@ export class Catalog implements OnInit {
     this.nameSong =   nameSong;
     this.router.navigate(['/stage', songId, nameSong]);
    
+  }
+
+  openRequestSheet(): void {
+    this.isBottomSheetOpen = true;
+  }
+
+
+  closeRequestSheet(): void {
+    this.isBottomSheetOpen = false;
   }
 }

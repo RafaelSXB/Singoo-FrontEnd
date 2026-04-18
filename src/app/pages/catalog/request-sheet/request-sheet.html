@@ -1,0 +1,36 @@
+<div class="sheet-backdrop" (click)="closeSheet()"></div>
+<div class="bottom-sheet" [ngClass]="{ 'closing': isClosing() }" [ngClass]="{'closed': isClosed()}">
+  
+  <div class="sheet-header">
+    <h3>Sugerir Música</h3>
+    <button class="close-btn" (click)="closeSheet()">✕</button>
+  </div>
+
+  @if (requestSuccessMessage) {
+    <div class="success-state">
+      <div class="success-icon">✓</div>
+      <p class="success-text">{{ requestSuccessMessage }} <br> {{ pointsAwarded }}</p>
+     
+    </div>
+  } @else {
+    <form [formGroup]="requestForm" (ngSubmit)="submitSongRequest()" class="request-form">
+      <div class="form-group">
+        <label>Nome da Música *</label>
+        <input type="text" formControlName="songName" placeholder="Ex: Driver's License" class="form-input">
+      </div>
+      
+      <div class="form-group">
+        <label>Artista (Opcional)</label>
+        <input type="text" formControlName="artistName" placeholder="Ex: Olivia Rodrigo" class="form-input">
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="requestForm.invalid || isSubmittingRequest">
+        @if (isSubmittingRequest) {
+          A Enviar...
+        } @else {
+          Enviar Pedido
+        }
+      </button>
+    </form>
+  }
+</div>

@@ -52,9 +52,18 @@
       }
 
       @if (songs.length === 0) {
-        <div class="empty-state">Nenhuma música encontrada.</div>
+        <div class="empty-state">
+          <p>Nenhuma musica encontrada.</p>
+          <button class="btn-request" (click)="openRequestSheet()">Sugerir Nova Música</button>
+        </div>
       }
     }
     
+    @if (isBottomSheetOpen) {
+    <app-request-sheet
+      [initialSearchTerm]="currentSearchTerm" 
+      (closed)="closeRequestSheet()">
+    </app-request-sheet>
+  }
   </main>
 </div>
